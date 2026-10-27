@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>SaulApeMan · About the project</title>
+<link rel="stylesheet" href="assets/style.css"></head>
+<body data-page="about">
+<header><div class="bar"><a class="logo" href="index.html">SaulApeMan · WC3</a><nav><a href="index.html" data-pl="Start" data-en="Home">Start</a><a href="ranking.html" data-pl="Ranking" data-en="Ranking">Ranking</a><a href="rekordy.html" data-pl="Rekordy" data-en="Records">Rekordy</a><a href="aktywnosc.html" data-pl="Aktywność" data-en="Activity">Aktywność</a><a href="o-projekcie.html" class="on" data-pl="O projekcie" data-en="About">O projekcie</a></nav>
+<div class="lang"><button data-l="pl">PL</button><button data-l="en">EN</button></div></div></header>
+<main><h1 data-pl="O projekcie" data-en="About the project">O projekcie</h1><p data-pl="Projekt SaulApeMan: automatyczne zbieranie i analiza danych Warcraft III (Reforged / Classic). Ranking jest odczytywany z gry zrzutami ekranu i rozpoznawany skryptami; strona jest generowana statycznie z lokalnej bazy danych."
+ data-en="SaulApeMan project: automated collection and analysis of Warcraft III data (Reforged / Classic). The ladder is read from the game with screenshots and recognised by scripts; this site is generated statically from a local database."></p>
+<div class="cards"><div class="card"><b id="patch"></b><span data-pl="numer patcha" data-en="patch number"></span></div>
+<div class="card"><b id="scand"></b><span data-pl="data ostatniego skanu rankingu" data-en="date of the last ladder scan"></span></div>
+<div class="card"><b id="built"></b><span data-pl="ostatnia aktualizacja strony" data-en="site last updated"></span></div></div>
+<h2 data-pl="Co widać na stronie" data-en="What you see here"></h2>
+<ul><li data-pl="Wyłącznie dane widoczne w rankingu gry: nazwa wyświetlana, rasa, ikona, MMR, wygrane/przegrane." data-en="Only data visible in the in-game ladder: display name, race, icon, MMR, wins/losses."></li>
+<li data-pl="Nic poza tym, co pokazuje ranking. Nazwy zapisane znakami graficznymi (np. CJK) nie są publikowane." data-en="Nothing beyond what the ladder shows. Names rendered as images (e.g. CJK) are not published."></li>
+<li data-pl="Wiersz rankingu to nie zawsze unikalny gracz: jedna osoba może mieć wpisy dla kilku ras." data-en="A ladder row is not always a unique player: one person can have entries for several races."></li>
+<li data-pl="Skan obejmuje tryb 1v1 w całości, pozostałe tryby to na razie próbki pierwszych stron." data-en="1v1 is scanned in full; the other modes are currently samples of the first pages."></li></ul>
+<p class="dim" data-pl="Warcraft III jest znakiem towarowym Blizzard Entertainment. Strona jest nieoficjalna." data-en="Warcraft III is a trademark of Blizzard Entertainment. This site is unofficial."></p></main>
+<footer id="foot"></footer>
+<script src="data/site-data.js"></script><script src="assets/app.js"></script>
+</body></html>
