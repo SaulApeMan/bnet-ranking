@@ -144,6 +144,7 @@ function activityPage(){
  o+=actTable(T('Największe zmiany MMR','Biggest MMR changes'),'<th>'+T('Gracz','Player')+'</th><th>'+T('Rasa','Race')+'</th><th class="n">'+T('Zmiana','Change')+'</th><th class="n">'+T('Było','Was')+'</th><th class="n">'+T('Jest','Now')+'</th>',a.jumps,function(r){return'<tr><td>'+icon(r[5])+nm(r[0])+'</td><td>'+rc(r[1])+'</td><td class="n">'+sgn(r[2])+'</td><td class="n">'+r[3]+'</td><td class="n">'+r[4]+'</td></tr>'});
  o+=actTable(T('Nowi w rankingu','New in the ladder'),'<th>'+T('Gracz','Player')+'</th><th>'+T('Rasa','Race')+'</th><th class="n">MMR</th>',a.new,function(r){return'<tr><td>'+icon(r[3])+nm(r[0])+'</td><td>'+rc(r[1])+'</td><td class="n">'+r[2]+'</td></tr>'});
  o+=actTable(T('Wypadli z rankingu','Dropped out'),'<th>'+T('Gracz','Player')+'</th><th>'+T('Rasa','Race')+'</th><th class="n">MMR</th>',a.dropped,function(r){return'<tr><td>'+icon(r[3])+nm(r[0])+'</td><td>'+rc(r[1])+'</td><td class="n">'+r[2]+'</td></tr>'});
+ o+='<p class="dim">'+T('Różnice liczone ze skanów odczytywanych przez OCR; pojedyncze wartości mogą być błędne. Gracze dopasowani po nicku, rasie i ikonie (przy zmianie ikony po nicku i rasie).','Differences are computed from OCR-read scans; single values may be wrong. Players are matched by nick, race and icon (by nick and race when the icon changed).')+'</p>';
  root.innerHTML=o;document.getElementById('am').onchange=function(){st.m=this.value;activityPage()}}
 function homePage(){
  var m=D.modes['1v1'],rc_=m.races,o='<div class="cards">';
