@@ -1,5 +1,7 @@
 # WC3 ladder in numbers
 
+Live site: https://saulapeman.com/bnet-ranking/
+
 A small static website (plain HTML, CSS and JavaScript; no backend, no forms, no external scripts) that shows the
 Warcraft III in-game ladder: rankings per mode with filters (race, icon, name) and sorting, records per race
 (including perfect records without a loss), and activity between scans.
@@ -12,11 +14,12 @@ wins, losses, icon. Provided as is, without warranty of accuracy (values are rea
 may be wrong). The data are public ranking data from the game.
 
 ## Content
-- `*.html` - pages (index, ranking, records, icons, activity, about)
+- `*.html` - pages (index, ranking, records, icons, w3champions, activity, about)
 - `assets/` - style, script and translations (`i18n.js`)
 - `data/site-data.js` - the data
 - `icons/` - player icons
 - `leagues/` - league (division) emblems
+- `icons-large/` - big portraits for the icon requirements view
 - `names/` - cropped pictures of names that the game shows as images (only when published)
 
 The repository contains nothing else.
