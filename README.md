@@ -12,7 +12,7 @@ wins, losses, icon. Provided as is, without warranty of accuracy (values are rea
 may be wrong). The data are public ranking data from the game.
 
 ## Content
-- `*.html` - pages (index, ranking, records, activity, about)
+- `*.html` - pages (index, ranking, records, icons, activity, about)
 - `assets/` - style, script and translations (`i18n.js`)
 - `data/site-data.js` - the data
 - `icons/` - player icons

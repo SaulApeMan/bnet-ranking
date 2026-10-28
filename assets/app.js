@@ -30,7 +30,8 @@ function hist(el,m,race){
  s+='<text x="2" y="12">'+mx+'</text><text x="2" y="'+H+'">0</text></svg>';el.innerHTML=s}
 function games(r){return r[4]+r[5]}
 var SORTS={rank:function(r){return r[0]},mmr:function(r){return r[3]},games:games,wins:function(r){return r[4]},losses:function(r){return r[5]},wr:function(r){var g=games(r);return g?r[4]/g:0},level:function(r){return r[6]||0}};
-function lgname(id){var l=D.leagues[id];return l?T('Dywizja ','Division ')+l.n:'?'}
+function lgname(id){var l=D.leagues[id];if(!l)return '?';var nm=l[L=='en'?'name':L]||l.name;return nm||T('Dywizja ','Division ')+l.n}
+function lgopt(id){var l=D.leagues[id];return l&&l.name?lgname(id)+' ('+T('Dywizja ','Division ')+l.n+')':lgname(id)}
 function lgcell(id){var l=D.leagues[id];if(!l)return '<span class="dim">–</span>';return (l.img?'<img class="lg" src="'+esc(l.img)+'" alt="" loading="lazy">':'')+lgname(id)}
 function rankingPage(){
  var root=document.getElementById('app'),ms=Object.keys(D.modes);
@@ -41,7 +42,7 @@ function rankingPage(){
  var o='<div class="ctl"><label>'+T('Tryb','Mode')+' <select id="fm">'+ms.map(function(x){return'<option'+(x==st.m?' selected':'')+'>'+x+'</option>'}).join('')+'</select></label>';
  o+='<label>'+T('Rasa','Race')+' <select id="fr"><option value="">'+T('wszystkie','all')+'</option>'+D.races.map(function(r){return'<option value="'+r+'"'+(r==st.race?' selected':'')+'>'+esc(rn(r))+'</option>'}).join('')+'</select></label>';
  o+='<label>'+T('Ikona','Icon')+' <select id="fi"><option value="">'+T('wszystkie','all')+'</option>'+m.icons.map(function(i){return'<option value="'+i[0]+'"'+(i[0]==st.icon?' selected':'')+'>'+esc(iname(i[0]))+' ('+i[1]+')</option>'}).join('')+'</select></label>';
- o+='<label>'+T('Liga','League')+' <select id="fl"><option value="">'+T('wszystkie','all')+'</option>'+Object.keys(D.leagues).map(function(k){return'<option value="'+k+'"'+(k==st.league?' selected':'')+'>'+lgname(k)+'</option>'}).join('')+'</select></label>';
+ o+='<label>'+T('Liga','League')+' <select id="fl"><option value="">'+T('wszystkie','all')+'</option>'+Object.keys(D.leagues).map(function(k){return'<option value="'+k+'"'+(k==st.league?' selected':'')+'>'+lgopt(k)+'</option>'}).join('')+'</select></label>';
  o+='<label>'+T('Szukaj','Search')+' <input id="fq" value="'+esc(st.q)+'" placeholder="'+T('nazwa','name')+'"></label>';
  o+='<label>'+T('Sortuj','Sort')+' <select id="fs">'+sopts.map(function(x){return'<option value="'+x[0]+'"'+(x[0]==st.sort?' selected':'')+'>'+x[1]+'</option>'}).join('')+'</select></label>';
  o+='<label><select id="fd"><option value="1"'+(st.dir==1?' selected':'')+'>'+T('rosnąco','ascending')+'</option><option value="-1"'+(st.dir==-1?' selected':'')+'>'+T('malejąco','descending')+'</option></select></label>';
@@ -96,12 +97,39 @@ function recordsPage(){
  o+='<div class="tw"><table><tr><th class="n">#</th><th>'+T('Gracz','Player')+'</th><th>'+T('Rasa','Race')+'</th><th class="n">'+T('Wygrane','Wins')+'</th><th class="n">MMR</th><th class="n">'+T('Miejsce','Ladder rank')+'</th></tr>';
  pool.slice(0,10).forEach(function(r,i){o+='<tr><td class="n">'+(i+1)+'</td><td>'+icon(r[7])+nm(r[1],r[8],r[0])+'</td><td>'+rc(r[2])+'</td><td class="n">'+r[4]+'</td><td class="n">'+r[3]+'</td><td class="n">'+r[0]+'</td></tr>'});
  o+='</table></div><p class="dim">'+T('Kolejność: najwięcej wygranych bez porażki, potem wyższe MMR. Ta sama osoba może mieć kilka wierszy (po jednym na rasę).','Order: most wins without a loss, then higher MMR. The same person can have several rows (one per race).')+'</p>';
- o+='<h2>'+T('Ikony: najwięcej graczy i najwyższe MMR','Icons: most players and highest MMR')+'</h2><div class="tw"><table><tr><th>'+T('Ikona','Icon')+'</th><th class="n">'+T('Wiersze','Rows')+'</th><th class="n">'+T('Różne nazwy','Distinct names')+'</th><th class="n">'+T('Najwyższe MMR','Highest MMR')+'</th><th class="n">'+T('Średnie MMR','Average MMR')+'</th><th class="n">'+T('Najwięcej gier','Most games')+'</th></tr>';
- var by={};all.forEach(function(r){var e=by[r[7]]=by[r[7]]||{n:0,s:0,mx:0,g:0};e.n++;e.s+=r[3];e.mx=Math.max(e.mx,r[3]);e.g=Math.max(e.g,games(r))});
- m.icons.slice(0,60).forEach(function(i){var e=by[i[0]];if(!e)return;o+='<tr><td>'+icon(i[0])+esc(iname(i[0]))+'</td><td class="n">'+i[1]+'</td><td class="n">'+i[2]+'</td><td class="n">'+e.mx+'</td><td class="n">'+Math.round(e.s/e.n)+'</td><td class="n">'+e.g+'</td></tr>'});
- o+='</table></div><p class="dim">'+T('Wiersz rankingu to nie zawsze unikalny gracz (kilka ras tej samej osoby). Pokazano 60 najpopularniejszych ikon; filtr ikony jest też na stronie Ranking.','A ladder row is not always a unique player (one person can have several races). The 60 most common icons are shown; the icon filter is also on the Ranking page.')+'</p>';
+ o+='<p><a href="icons.html">'+T('Wszystkie ikony →','All icons →')+'</a></p>';
  root.innerHTML=o;
  document.getElementById('rm').onchange=function(){st.m=this.value;recordsPage()};document.getElementById('pr').onchange=function(){window._sp=this.value;recordsPage()};document.getElementById('rg').onchange=function(){st.min=+this.value||1;recordsPage()}}
+function iconsPage(){
+ var root=document.getElementById('app'),ms=Object.keys(D.modes);
+ var st=window._si=window._si||{m:QS.get('mode')||'1v1',race:QS.get('race')||'',league:QS.get('league')||'',q:QS.get('q')||'',min:+QS.get('min')||0,k:QS.get('sort')||'n',dir:QS.get('dir')=='1'?1:-1};
+ if(!D.modes[st.m])st.m='1v1';
+ var m=D.modes[st.m],hasL=Object.keys(D.leagues).length>0;
+ var o='<div class="ctl"><label>'+T('Tryb','Mode')+' <select id="im">'+ms.map(function(x){return'<option'+(x==st.m?' selected':'')+'>'+x+'</option>'}).join('')+'</select></label>';
+ o+='<label>'+T('Rasa','Race')+' <select id="ir"><option value="">'+T('wszystkie','all')+'</option>'+D.races.map(function(r){return'<option value="'+r+'"'+(r==st.race?' selected':'')+'>'+esc(rn(r))+'</option>'}).join('')+'</select></label>';
+ if(hasL)o+='<label>'+T('Liga','League')+' <select id="il"><option value="">'+T('wszystkie','all')+'</option>'+Object.keys(D.leagues).map(function(k){return'<option value="'+k+'"'+(k==st.league?' selected':'')+'>'+lgopt(k)+'</option>'}).join('')+'</select></label>';
+ o+='<label>'+T('Szukaj','Search')+' <input id="iq" value="'+esc(st.q)+'" placeholder="'+T('nazwa ikony','icon name')+'"></label>';
+ o+='<label>'+T('Min. graczy','Min. players')+' <input id="in" type="number" min="0" value="'+st.min+'" style="width:80px"></label></div>';
+ var rows=m.top.filter(function(r){return(!st.race||r[2]==st.race)&&(!st.league||r[9]==st.league)});
+ var by={};
+ Object.keys(D.icons).forEach(function(id){by[id]={id:id,n:0,s:0,mx:0,nm:{},rc:{}}});   // every known icon is listed, also those nobody uses in this view
+ rows.forEach(function(r){var id=r[7]||'?';var e=by[id]=by[id]||{id:id,n:0,s:0,mx:0,nm:{},rc:{}};e.n++;e.s+=r[3];if(r[3]>e.mx)e.mx=r[3];if(r[1])e.nm[r[1].toLowerCase()]=1;e.rc[r[2]]=(e.rc[r[2]]||0)+1});
+ var list=Object.keys(by).map(function(id){var e=by[id];e.names=Object.keys(e.nm).length;e.avg=e.n?Math.round(e.s/e.n):0;e.share=rows.length?e.n/rows.length*100:0;e.label=id=='?'?T('(nieznana ikona)','(unknown icon)'):iname(id);return e});
+ var q=st.q.toLowerCase();
+ list=list.filter(function(e){return e.n>=st.min&&(!q||e.label.toLowerCase().indexOf(q)>=0)});
+ var key=function(e){return st.k=='label'?e.label.toLowerCase():st.k.indexOf('r:')==0?(e.rc[st.k.slice(2)]||0):e[st.k]};
+ list.sort(function(a,b){var x=key(a),y=key(b);var c=x<y?-1:x>y?1:0;return (c*st.dir)||(b.n-a.n)});
+ var cols=[['label',T('Ikona','Icon')],['n',T('Gracze','Players')],['share','%'],['names',T('Różne nazwy','Distinct names')],['avg',T('Średnie MMR','Average MMR')],['mx',T('Najwyższe MMR','Highest MMR')]].concat(D.races.map(function(r){return['r:'+r,rn(r)]}));
+ o+='<div class="note">'+T('Skan z ','Scan of ')+esc(m.date)+' · '+rows.length.toLocaleString()+T(' wierszy',' rows')+' · '+list.length+T(' ikon',' icons')+' · '+T('Kliknij nagłówek kolumny, aby sortować.','Click a column header to sort.')+'</div>';
+ o+='<div class="tw"><table><tr><th class="n">#</th>'+cols.map(function(c,i){var on=c[0]==st.k;return'<th'+(i?' class="n"':'')+' style="cursor:pointer" data-k="'+c[0]+'">'+esc(c[1])+(on?(st.dir==1?' ▲':' ▼'):'')+'</th>'}).join('')+'</tr>';
+ list.forEach(function(e,i){o+='<tr><td class="n">'+(i+1)+'</td><td>'+icon(e.id)+esc(e.label)+'</td><td class="n">'+e.n.toLocaleString()+'</td><td class="n">'+e.share.toFixed(1)+'</td><td class="n">'+e.names.toLocaleString()+'</td><td class="n">'+e.avg+'</td><td class="n">'+e.mx+'</td>'+D.races.map(function(r){return'<td class="n">'+(e.rc[r]||0).toLocaleString()+'</td>'}).join('')+'</tr>'});
+ o+='</table></div><p class="dim">'+T('Gracze = wiersze rankingu z tą ikoną; jedna osoba może mieć kilka wierszy (po jednym na rasę). Filtr rasy i ligi zmienia, w jakim gronie liczona jest popularność.','Players = ladder rows that use the icon; one person can have several rows (one per race). The race and league filters change the group in which popularity is counted.')+'</p>';
+ root.innerHTML=o;
+ function rd(){st.m=document.getElementById('im').value;st.race=document.getElementById('ir').value;var l=document.getElementById('il');st.league=l?l.value:'';st.min=+document.getElementById('in').value||0;iconsPage()}
+ ['im','ir','il','in'].forEach(function(id){var e=document.getElementById(id);if(e)e.onchange=rd});
+ var qi=document.getElementById('iq');qi.oninput=function(){st.q=qi.value;var p=qi.selectionStart;iconsPage();var n=document.getElementById('iq');n.focus();n.setSelectionRange(p,p)};
+ document.querySelectorAll('th[data-k]').forEach(function(th){th.onclick=function(){var k=th.getAttribute('data-k');if(st.k==k)st.dir=-st.dir;else{st.k=k;st.dir=k=='label'?1:-1}iconsPage()}});
+}
 function actTable(title,head,list,row){
  if(!list.length)return '';
  return '<h2>'+title+'</h2><div class="tw"><table><tr>'+head+'</tr>'+list.map(row).join('')+'</table></div>'}
@@ -131,7 +159,7 @@ function homePage(){
 function aboutPage(){document.getElementById('built').textContent=D.built;document.getElementById('patch').textContent=D.patch;document.getElementById('scand').textContent=(D.modes['1v1']||{}).date||''}
 function render(){
  chrome();var p=document.body.dataset.page;
- if(p=='home')homePage();else if(p=='ranking')rankingPage();else if(p=='records')recordsPage();else if(p=='activity')activityPage();else if(p=='about')aboutPage();
+ if(p=='home')homePage();else if(p=='ranking')rankingPage();else if(p=='records')recordsPage();else if(p=='icons')iconsPage();else if(p=='activity')activityPage();else if(p=='about')aboutPage();
  var f=document.getElementById('foot');if(f)f.textContent=T('Dane: ranking gry Warcraft III · aktualizacja ','Data: Warcraft III in-game ladder · updated ')+D.built}
 document.querySelectorAll('.lang button').forEach(function(b){b.onclick=function(){setLang(b.dataset.l)}});
 render();
