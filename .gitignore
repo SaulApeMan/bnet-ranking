@@ -5,9 +5,9 @@
 !README.md
 !index.html
 !ranking.html
-!rekordy.html
-!aktywnosc.html
-!o-projekcie.html
+!records.html
+!activity.html
+!about.html
 !assets/
 !assets/*.css
 !assets/*.js
@@ -15,3 +15,7 @@
 !data/site-data.js
 !icons/
 !icons/*.png
+!names/
+!names/*.png
+!leagues/
+!leagues/*.png
