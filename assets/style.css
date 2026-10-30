@@ -30,7 +30,7 @@ h3{font:600 16px Georgia,serif;margin:1.2em 0 .5em;color:var(--ink)}
 .rq img.big{width:112px;height:112px;border-radius:6px;border:1px solid var(--line)}
 .rq span{color:var(--dim);font-size:13px}.rq small{color:var(--gold);font-size:12px}
 .lg{height:24px;width:24px;vertical-align:middle;margin-right:4px}
-.nm{height:26px;vertical-align:middle;margin-right:4px;border-radius:2px}
+.nm{height:22px;max-width:180px;object-fit:cover;object-position:left;vertical-align:middle;margin-right:4px;border-radius:2px}
 .ic{width:24px;height:24px;vertical-align:middle;margin-right:6px;image-rendering:auto}
 .Human{color:var(--Human)}.Orc{color:var(--Orc)}.Undead{color:var(--Undead)}.NightElf{color:var(--NightElf)}.Random{color:var(--Random)}
 .dim{color:var(--dim)}.up{color:#6fd16f}.down{color:#e26a5a}

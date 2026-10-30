@@ -7,10 +7,10 @@ if(LANGS.indexOf(QS.get('lang'))>=0)L=QS.get('lang');
 var T=function(pl,en){return L=='pl'?pl:L=='en'?en:((TR[en]||{})[L]||en)};
 var RC={Human:'Human','Orc':'Orc','Undead':'Undead','Night Elf':'NightElf','Random':'Random'};
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
-function rn(r){return r?((D.race_names[L]||{})[r]||r):'?'}
+function rn(r){return r?((D.race_names[L]||{})[r]||r):'—'}
 function icon(id){var i=D.icons[id];if(!i)return '';return '<img class="ic" src="icons/icon-'+id+'.png" alt="" title="'+esc(i[L]||i.en)+'" loading="lazy">'}
 function iname(id){var i=D.icons[id];return i?(i[L]||i.en):id}
-function nm(n,img,rk){if(n!=null)return esc(n);if(img)return '<img class="nm" src="'+esc(img)+'" alt="name image" loading="lazy"> <span class="dim">'+T('[obrazek] #','[image] #')+rk+'</span>';return '<span class="dim">'+T('(nazwa graficzna)','(image name)')+'</span>'}
+function nm(n,img,rk){if(n!=null)return esc(n);if(img)return '<img class="nm" src="'+esc(img)+'" alt="'+esc(T('nazwa (obrazek)','name (picture)'))+'" title="'+esc(T('nazwa (obrazek)','name (picture)'))+'" loading="lazy">';return '<span class="dim">—</span>'}
 function rc(r){return '<span class="'+(RC[r]||'')+'">'+esc(rn(r))+'</span>'}
 function sgn(v){return '<span class="'+(v>0?'up':v<0?'down':'dim')+'">'+(v>0?'+':'')+v+'</span>'}
 function modeLabel(m){return m}
@@ -195,11 +195,10 @@ function activityPage(){
  var st=window._sa=window._sa||{m:ms[0]};if(!D.activity[st.m])st.m=ms[0];
  var a=D.activity[st.m];
  var o='<div class="ctl"><label>'+T('Tryb','Mode')+' <select id="am">'+ms.map(function(m){return'<option'+(m==st.m?' selected':'')+'>'+m+'</option>'}).join('')+'</select></label><span class="dim">'+esc(a.from)+' → '+esc(a.to)+'</span></div>';
- o+='<div class="cards"><div class="card"><b>'+a.new_n+'</b><span>'+T('nowi w rankingu','new in the ladder')+'</span></div><div class="card"><b>'+a.dropped_n+'</b><span>'+T('wypadli z rankingu','dropped out')+'</span></div></div>';
+ o+='<div class="cards"><div class="card"><b>'+a.new_n+'</b><span>'+T('nowi w rankingu','new in the ladder')+'</span></div></div>';
  o+=actTable(T('Najwięcej rozegranych gier','Most games played'),'<th>'+T('Gracz','Player')+'</th><th>'+T('Rasa','Race')+'</th><th class="n">'+T('Gry','Games')+'</th><th class="n">MMR</th>',a.games.filter(function(r){return r[2]>0}),function(r){return'<tr><td>'+icon(r[5])+nm(r[0])+'</td><td>'+rc(r[1])+'</td><td class="n">'+r[2]+'</td><td class="n">'+r[4]+'</td></tr>'});
  o+=actTable(T('Największe zmiany MMR','Biggest MMR changes'),'<th>'+T('Gracz','Player')+'</th><th>'+T('Rasa','Race')+'</th><th class="n">'+T('Zmiana','Change')+'</th><th class="n">'+T('Było','Was')+'</th><th class="n">'+T('Jest','Now')+'</th>',a.jumps,function(r){return'<tr><td>'+icon(r[5])+nm(r[0])+'</td><td>'+rc(r[1])+'</td><td class="n">'+sgn(r[2])+'</td><td class="n">'+r[3]+'</td><td class="n">'+r[4]+'</td></tr>'});
  o+=actTable(T('Nowi w rankingu','New in the ladder'),'<th>'+T('Gracz','Player')+'</th><th>'+T('Rasa','Race')+'</th><th class="n">MMR</th>',a.new,function(r){return'<tr><td>'+icon(r[3])+nm(r[0])+'</td><td>'+rc(r[1])+'</td><td class="n">'+r[2]+'</td></tr>'});
- o+=actTable(T('Wypadli z rankingu','Dropped out'),'<th>'+T('Gracz','Player')+'</th><th>'+T('Rasa','Race')+'</th><th class="n">MMR</th>',a.dropped,function(r){return'<tr><td>'+icon(r[3])+nm(r[0])+'</td><td>'+rc(r[1])+'</td><td class="n">'+r[2]+'</td></tr>'});
  o+='<p class="dim">'+T('Różnice liczone ze skanów odczytywanych przez OCR; pojedyncze wartości mogą być błędne. Gracze dopasowani po nicku, rasie i ikonie (przy zmianie ikony po nicku i rasie).','Differences are computed from OCR-read scans; single values may be wrong. Players are matched by nick, race and icon (by nick and race when the icon changed).')+'</p>';
  root.innerHTML=o;document.getElementById('am').onchange=function(){st.m=this.value;activityPage()}}
 function homePage(){
