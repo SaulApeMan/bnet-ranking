@@ -13,6 +13,7 @@
 !assets/
 !assets/*.css
 !assets/*.js
+!assets/*.png
 !data/
 !data/site-data.js
 !icons/

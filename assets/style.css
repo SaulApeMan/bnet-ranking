@@ -9,6 +9,7 @@ header{background:var(--panel);border-bottom:2px solid var(--gold);position:stic
 nav{display:flex;gap:4px;flex-wrap:wrap;flex:1}
 nav a{color:var(--ink);text-decoration:none;padding:6px 12px;border-radius:4px}
 nav a:hover{background:var(--panel2)}nav a.on{background:var(--gold);color:#1a1409;font-weight:600}
+.lang select{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:4px 6px;font:inherit;font-size:13px;width:auto;min-height:0;cursor:pointer}
 .lang button{background:var(--panel2);color:var(--ink);border:1px solid var(--line);padding:4px 10px;cursor:pointer}
 .lang button.on{background:var(--gold);color:#1a1409;border-color:var(--gold)}
 main{max-width:1100px;margin:auto;padding:20px 16px 60px}
@@ -21,6 +22,10 @@ select,input{background:var(--panel2);color:var(--ink);border:1px solid var(--li
 table{border-collapse:collapse;width:100%;background:var(--panel)}th,td{padding:5px 9px;text-align:left;border-bottom:1px solid var(--line)}
 th{background:var(--panel2);color:var(--gold);font-weight:600}td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 tr:hover td{background:#251e15}.tw{overflow-x:auto}
+.pbar{display:inline-block;width:110px;height:10px;background:var(--panel2);border-radius:5px;overflow:hidden;vertical-align:middle;margin-right:8px}
+.pbar span{display:block;height:100%;background:var(--gold)}.pbar.s span{background:#6fd16f}
+td.small{font-size:13px}
+@media(max-width:700px){.pbar{width:60px}}
 .qa{display:inline-block;width:7px;height:7px;border-radius:50%;background:#8a8478;margin-left:6px;vertical-align:middle;cursor:help}
 .tabs button{background:var(--panel2);color:var(--ink);border:1px solid var(--line);padding:6px 16px;cursor:pointer;border-radius:4px;font:inherit}
 .tabs button.on{background:var(--gold);color:#1a1409;border-color:var(--gold);font-weight:600}
@@ -70,6 +75,6 @@ td{white-space:nowrap}td:nth-child(2){white-space:normal}
 .rqgrid{grid-template-columns:repeat(2,1fr);gap:8px}
 .rq{padding:8px}.rq img.big{width:88px;height:88px}
 body:not(.cols-all)[data-page=ranking] :is(th,td):nth-child(n+7){display:none}
-body:not(.cols-all)[data-page=icons] :is(th,td):nth-child(n+5){display:none}
+body:not(.cols-all)[data-page=icons] .maintab :is(th,td):nth-child(n+5){display:none}
 body:not(.cols-all)[data-page=w3c] :is(th,td):is(:nth-child(4),:nth-child(5),:nth-child(8)){display:none}
 }

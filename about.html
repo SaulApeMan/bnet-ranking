@@ -1,13 +1,19 @@
 <!doctype html>
-<html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <title>SaulApeMan · About the project</title>
+<meta name="description" content="Warcraft III Battle.net ladder in numbers: rankings, records, player icons, W3Champions and activity, updated from in-game scans.">
+<meta property="og:type" content="website"><meta property="og:site_name" content="SaulApeMan">
+<meta property="og:title" content="Warcraft III ladder in numbers · SaulApeMan">
+<meta property="og:description" content="Battle.net ladder rankings, records, icons and W3Champions accounts - PL / EN / 中文 / DE.">
+<meta property="og:image" content="https://saulapeman.com/bnet-ranking/assets/og.png"><meta name="twitter:card" content="summary">
+<link rel="icon" type="image/png" href="assets/favicon.png">
 <link rel="stylesheet" href="assets/style.css"></head>
 <body data-page="about">
-<header><div class="bar"><a class="logo" href="index.html">SaulApeMan · WC3</a><nav><a href="index.html" data-pl="Start" data-en="Home">Start</a><a href="ranking.html" data-pl="Ranking" data-en="Ranking">Ranking</a><a href="records.html" data-pl="Rekordy" data-en="Records">Rekordy</a><a href="icons.html" data-pl="Ikony" data-en="Icons">Ikony</a><a href="w3champions.html" data-pl="W3Champions" data-en="W3Champions">W3Champions</a><a href="activity.html" data-pl="Aktywność" data-en="Activity">Aktywność</a><a href="about.html" class="on" data-pl="O projekcie" data-en="About">O projekcie</a></nav>
-<div class="lang"><button data-l="pl">PL</button><button data-l="en">EN</button><button data-l="zh">中文</button><button data-l="de">DE</button></div></div></header>
-<main><h1 data-pl="O projekcie" data-en="About the project">O projekcie</h1><p data-pl="Projekt SaulApeMan: automatyczne zbieranie i analiza danych Warcraft III (Reforged / Classic). Ranking jest odczytywany z gry zrzutami ekranu i rozpoznawany skryptami; strona jest generowana statycznie z lokalnej bazy danych."
+<header><div class="bar"><a class="logo" href="index.html">SaulApeMan · WC3</a><nav><a href="index.html" data-pl="Start" data-en="Home">Home</a><a href="ranking.html" data-pl="Ranking" data-en="Ranking">Ranking</a><a href="records.html" data-pl="Rekordy" data-en="Records">Records</a><a href="icons.html" data-pl="Ikony" data-en="Icons">Icons</a><a href="w3champions.html" data-pl="W3Champions" data-en="W3Champions">W3Champions</a><a href="activity.html" data-pl="Aktywność" data-en="Activity">Activity</a><a href="about.html" class="on" data-pl="O projekcie" data-en="About">About</a></nav>
+<div class="lang"><select id="langsel" aria-label="Language"><option value="en">EN · English</option><option value="pl">PL · Polski</option><option value="zh">中文 · Chinese</option><option value="de">DE · Deutsch</option></select></div></div></header>
+<main><h1 data-pl="O projekcie" data-en="About the project">About the project</h1><p data-pl="Projekt SaulApeMan: automatyczne zbieranie i analiza danych Warcraft III (Reforged / Classic). Ranking jest odczytywany z gry zrzutami ekranu i rozpoznawany skryptami; strona jest generowana statycznie z lokalnej bazy danych."
  data-en="SaulApeMan project: automated collection and analysis of Warcraft III data (Reforged / Classic). The ladder is read from the game with screenshots and recognised by scripts; this site is generated statically from a local database."></p>
 <div class="cards"><div class="card"><b id="patch"></b><span data-pl="numer patcha" data-en="patch number"></span></div>
 <div class="card"><b id="scand"></b><span data-pl="data ostatniego skanu rankingu" data-en="date of the last ladder scan"></span></div>
@@ -19,6 +25,6 @@
 <li data-pl="Każdy tryb jest skanowany w całości, a strona pokazuje tylko skany oznaczone jako kompletne." data-en="Every mode is scanned in full, and the site shows only scans marked as complete."></li></ul>
 <p data-pl="Dane pochodzą z publicznego rankingu gry Warcraft III. Jeśli chcesz, aby Twój wpis (nick lub BattleTag) zniknął ze strony, otwórz zgłoszenie (Issues) w repozytorium tej strony na GitHubie, a zostanie usunięty przy następnej aktualizacji." data-en="The data come from the public Warcraft III in-game ladder. If you want your entry (nick or BattleTag) removed from this site, open an issue in this site's GitHub repository and it will be removed in the next update."></p>
 <p class="dim" data-pl="Warcraft III jest znakiem towarowym Blizzard Entertainment. Strona jest nieoficjalna." data-en="Warcraft III is a trademark of Blizzard Entertainment. This site is unofficial."></p></main>
-<footer id="foot"></footer>
+<footer><span id="foot"></span> · <a href="../" data-pl="saulapeman.com - strona główna" data-en="saulapeman.com - home">saulapeman.com - home</a></footer>
 <script src="data/site-data.js"></script><script src="assets/i18n.js"></script><script src="assets/app.js"></script>
 </body></html>

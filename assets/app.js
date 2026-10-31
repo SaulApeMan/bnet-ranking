@@ -1,7 +1,7 @@
 (function(){
 var D=window.SITE_DATA,TR=window.I18N||{},LANGS=['pl','en','zh','de'],L='';
 try{L=localStorage.getItem('lang')||''}catch(e){}
-if(LANGS.indexOf(L)<0){var nl=(navigator.language||'').slice(0,2);L=nl=='pl'?'pl':nl=='zh'?'zh':nl=='de'?'de':'en'}
+if(LANGS.indexOf(L)<0)L='en';
 var QS=new URLSearchParams(location.search);
 if(LANGS.indexOf(QS.get('lang'))>=0)L=QS.get('lang');
 var T=function(pl,en){return L=='pl'?pl:L=='en'?en:((TR[en]||{})[L]||en)};
@@ -18,7 +18,7 @@ function setLang(l){L=l;try{localStorage.setItem('lang',l)}catch(e){}render()}
 function chrome(){
  document.querySelectorAll('[data-pl]').forEach(function(e){e.innerHTML=T(e.getAttribute('data-pl'),e.getAttribute('data-en'))});
  document.documentElement.lang=L=='zh'?'zh-Hans':L;
- document.querySelectorAll('.lang button').forEach(function(b){b.classList.toggle('on',b.dataset.l==L)});
+ var ls=document.getElementById('langsel');if(ls)ls.value=L;
 }
 function hist(el,m,race){
  var h=D.modes[m].hist,idx=race?D.races.indexOf(race)+2:1,mx=0;
@@ -50,7 +50,7 @@ function rankingPage(){
  o+='<label>'+T('Min. gier','Min. games')+' <input id="fg" type="number" min="0" value="'+st.min+'" style="width:80px"></label></div>';
  var rows=m.top.filter(function(r){return(!st.race||r[2]==st.race)&&(!st.icon||r[7]==st.icon)&&(!st.league||r[9]==st.league)&&(!st.q||(r[1]||'').toLowerCase().indexOf(st.q.toLowerCase())>=0)&&games(r)>=st.min});
  var f=SORTS[st.sort];rows=rows.slice().sort(function(a,b){return(f(a)-f(b))*st.dir||a[0]-b[0]});
- o+='<div class="note">'+T('Skan z ','Scan of ')+esc(m.date)+' · '+m.rows.toLocaleString()+T(' wierszy',' rows')+(m.sample?T(' (próbka: tylko pierwsze strony rankingu)',' (sample: first pages of the ladder only)'):'')+' · '+T('mediana MMR ','median MMR ')+m.mmr_median+' · <b>'+rows.length.toLocaleString()+'</b> '+T('pasuje do filtrów','match the filters')+'<br><span class="dim">'+T('Miejsce w rankingu gry wynika z poziomu konta, nie z MMR – żeby zobaczyć najsilniejszych graczy, sortuj po MMR.','The in-game ladder rank follows account level, not MMR – sort by MMR to see the strongest players.')+'</span></div>';
+ o+='<div class="note">'+T('Skan z ','Scan of ')+esc(m.date)+' · '+m.rows.toLocaleString()+T(' wierszy',' rows')+(m.sample?T(' (próbka: tylko pierwsze strony rankingu)',' (sample: first pages of the ladder only)'):'')+(m.partial?' · <b class="down">'+T('skan niepełny – część rankingu','incomplete scan – part of the ladder only')+'</b>':'')+' · '+T('mediana MMR ','median MMR ')+m.mmr_median+' · <b>'+rows.length.toLocaleString()+'</b> '+T('pasuje do filtrów','match the filters')+'<br><span class="dim">'+T('Miejsce w rankingu gry wynika z poziomu konta, nie z MMR – żeby zobaczyć najsilniejszych graczy, sortuj po MMR.','The in-game ladder rank follows account level, not MMR – sort by MMR to see the strongest players.')+'</span></div>';
  o+='<div class="tw"><table><tr><th class="n">#</th><th>'+T('Gracz','Player')+'</th>'+(Object.keys(D.leagues).length?'<th>'+T('Liga','League')+'</th>':'')+'<th class="n">'+T('Poz.','Lvl')+'</th><th>'+T('Rasa','Race')+'</th><th class="n">MMR</th><th class="n">'+T('Wygr.','Wins')+'</th><th class="n">'+T('Przegr.','Losses')+'</th><th class="n">'+T('Gry','Games')+'</th><th class="n">%</th></tr>';
  rows.slice(0,st.shown).forEach(function(r){var g=games(r);o+='<tr><td class="n">'+r[0]+'</td><td>'+icon(r[7])+nm(r[1],r[8],r[0])+qa(r)+'</td>'+(Object.keys(D.leagues).length?'<td>'+lgcell(r[9])+'</td>':'')+'<td class="n">'+(r[6]==null?'<span class="dim">–</span>':r[6])+'</td><td>'+rc(r[2])+'</td><td class="n">'+r[3]+'</td><td class="n">'+r[4]+'</td><td class="n">'+r[5]+'</td><td class="n">'+g+'</td><td class="n">'+(g?Math.round(r[4]/g*100):0)+'</td></tr>'});
  o+='</table></div><p class="dim">'+T('Pokazano ','Showing ')+Math.min(st.shown,rows.length)+T(' z ',' of ')+rows.length.toLocaleString()+(rows.length>st.shown?' · <a href="#" id="more">'+T('pokaż 200 więcej','show 200 more')+'</a>':'')+'</p>';
@@ -99,8 +99,17 @@ function recordsPage(){
  pool.slice(0,10).forEach(function(r,i){o+='<tr><td class="n">'+(i+1)+'</td><td>'+icon(r[7])+nm(r[1],r[8],r[0])+qa(r)+'</td><td>'+rc(r[2])+'</td><td class="n">'+r[4]+'</td><td class="n">'+r[3]+'</td><td class="n">'+r[0]+'</td></tr>'});
  o+='</table></div><p class="dim">'+T('Kolejność: najwięcej wygranych bez porażki, potem wyższe MMR. Ta sama osoba może mieć kilka wierszy (po jednym na rasę).','Order: most wins without a loss, then higher MMR. The same person can have several rows (one per race).')+'</p>';
  o+='<p><a href="icons.html">'+T('Wszystkie ikony →','All icons →')+'</a></p>';
+ var OM=D.omni||{all:[],modes:{}},omodes=Object.keys(OM.modes);
+ if(OM.all.length){var AB={'Human':'HU','Orc':'ORC','Undead':'UD','Night Elf':'NE','Random':'RND'};
+  var ok=window._so||'all';if(ok!='all'&&!OM.modes[ok])ok='all';var allv=ok=='all',list=allv?OM.all:OM.modes[ok];
+  o+='<h2 id="omni">'+T('Wszędzie w rankingu','Everywhere on the ladder')+'</h2><p class="dim">'+(allv?T('BattleTagi z największą liczbą wpisów we wszystkich rankingach Battle.net razem (1v1, 2v2, 3v3, 4v4, FFA; ostatnie pełne skany z odczytanymi tagami).','BattleTags with the most entries in all Battle.net ladders together (1v1, 2v2, 3v3, 4v4, FFA; latest complete scans with tags read).'):T('BattleTagi z największą liczbą wpisów w rankingu 1v1 (osobny wpis na każdą rasę i bramę; najwyżej 15 = 5 ras × 3 bramy), ostatni pełny skan.','BattleTags with the most entries in the 1v1 ladder (a separate entry per race and gateway; at most 15 = 5 races × 3 gateways), latest complete scan.'))+'</p>';
+  o+='<div class="ctl"><label>'+T('Tryb','Mode')+' <select id="om"><option value="all"'+(allv?' selected':'')+'>'+T('wszystkie tryby','all modes')+'</option>'+omodes.map(function(x){return'<option'+(x==ok?' selected':'')+'>'+x+'</option>'}).join('')+'</select></label>'+(omodes.length<5?'<span class="dim">'+T('Tagi odczytane na razie w: ','Tags read so far in: ')+esc(omodes.join(', '))+'</span>':'')+'</div>';
+  o+='<div class="tw"><table><tr><th class="n">#</th><th>BattleTag</th><th class="n">'+T('Wpisy','Entries')+'</th><th>'+(allv?T('Tryby','Modes'):T('Rasy','Races'))+'</th><th class="n">'+T('Najlepsze MMR','Best MMR')+'</th>'+(allv?'':'<th class="n">'+T('Najlepsze miejsce','Best rank')+'</th>')+'</tr>';
+  list.forEach(function(x,i){var det=allv?Object.keys(x.modes).map(function(k){return esc(k)+'×'+x.modes[k]}).join(', '):D.races.filter(function(r){return x.races[r]}).map(function(r){return '<span class="'+(RC[r]||'')+'" title="'+esc(rn(r))+'">'+AB[r]+'×'+x.races[r]+'</span>'}).join(', ');
+   o+='<tr><td class="n">'+(i+1)+'</td><td>'+esc(x.tag)+'</td><td class="n">'+x.n+'</td><td>'+det+'</td><td class="n">'+x.mmr+'</td>'+(allv?'':'<td class="n">'+x.rank+'</td>')+'</tr>'});
+  o+='</table></div>'}
  root.innerHTML=o;
- document.getElementById('rm').onchange=function(){st.m=this.value;recordsPage()};document.getElementById('pr').onchange=function(){window._sp=this.value;recordsPage()};document.getElementById('rg').onchange=function(){st.min=+this.value||1;recordsPage()}}
+ document.getElementById('rm').onchange=function(){st.m=this.value;recordsPage()};var _om=document.getElementById('om');if(_om)_om.onchange=function(){window._so=this.value;recordsPage();var h=document.getElementById('omni');if(h)h.scrollIntoView()};document.getElementById('pr').onchange=function(){window._sp=this.value;recordsPage()};document.getElementById('rg').onchange=function(){st.min=+this.value||1;recordsPage()}}
 function ictabs(st){return '<div class="ctl tabs"><button data-v="players" class="'+(st.view!='req'?'on':'')+'">'+T('Ikony graczy','Player icons')+'</button><button data-v="req" class="'+(st.view=='req'?'on':'')+'">'+T('Wymagania ikon','Icon requirements')+'</button></div>'}
 function ictabsBind(st){document.querySelectorAll('.tabs button').forEach(function(b){b.onclick=function(){st.view=b.getAttribute('data-v');iconsPage()}})}
 function reqPage(st){
@@ -122,6 +131,28 @@ function reqPage(st){
     return '<div class="rq"><img class="big" src="'+(i.big?'icons-large/'+id+'.png':'icons/icon-'+id+'.png')+'" alt="" loading="lazy"><b>'+esc(iname(id))+'</b><span>'+esc(d)+'</span><small>'+T('Graczy w 1v1: ','Players in 1v1: ')+(cnt[id]||0).toLocaleString()+'</small></div>'}).join('')+'</div>'});
  });
  root.innerHTML=o;ictabsBind(st);
+}
+function leagueIcons(m){
+ // Icons by league: share of ladder rows in each league that use the icon, and portrait categories by league
+ if(!Object.keys(D.leagues).length)return '';
+ var rows=m.top.filter(function(r){return r[7]&&r[9]}),lg=Object.keys(D.leagues).sort(),tot={},cnt={},all={};
+ rows.forEach(function(r){tot[r[9]]=(tot[r[9]]||0)+1;all[r[7]]=(all[r[7]]||0)+1;var k=r[7]+'|'+r[9];cnt[k]=(cnt[k]||0)+1});
+ lg=lg.filter(function(l){return (tot[l]||0)>=30});           // leagues with too few rows are skipped (noise)
+ if(lg.length<2)return '';
+ var top=Object.keys(all).sort(function(a,b){return all[b]-all[a]}).slice(0,15);
+ function heat(p,mx){var a=mx?Math.min(1,p/mx):0;return ' style="background:rgba(231,194,90,'+(a*0.55).toFixed(2)+')"'}
+ var o='<h2 id="byleague">'+T('Ikony według ligi','Icons by league')+'</h2><p class="dim">'+T('Udział wierszy rankingu w danej lidze, które używają ikony (%). Ligi z mniej niż 30 wierszami pominięto.','Share of ladder rows in each league that use the icon (%). Leagues with fewer than 30 rows are left out.')+'</p>';
+ o+='<div class="tw"><table><tr><th>'+T('Ikona','Icon')+'</th>'+lg.map(function(l){return'<th class="n">'+lgcell(l)+'<br><span class="dim">'+tot[l].toLocaleString()+'</span></th>'}).join('')+'</tr>';
+ top.forEach(function(id){var ps=lg.map(function(l){return (cnt[id+'|'+l]||0)/tot[l]*100}),mx=Math.max.apply(null,ps);
+  o+='<tr><td>'+icon(id)+esc(iname(id))+'</td>'+ps.map(function(p){return'<td class="n"'+heat(p,mx)+'>'+p.toFixed(1)+'</td>'}).join('')+'</tr>'});
+ o+='</table></div>';
+ var cats=[['free',T('Darmowe ikony','Free icons')],['wins',T('Wygrane w grach rankingowych','Matchmaking wins')],['tournament',T('Wygrane w turniejach','Tournament wins')],['campaign',T('Ukończenie kampanii','Campaign completion')],['special',T('Ikony specjalne (wymaganie nieznane)','Special icons (requirement not shown)')]];
+ var cc={};rows.forEach(function(r){var c=(D.icons[r[7]]||{}).cat;if(!c)return;var k=c+'|'+r[9];cc[k]=(cc[k]||0)+1});
+ o+='<h2>'+T('Kategorie portretów według ligi','Portrait categories by league')+'</h2><p class="dim">'+T('Jak zdobyty jest portret, który gracze noszą w danej lidze (% wierszy).','How the portrait that players show in each league was unlocked (% of rows).')+'</p>';
+ o+='<div class="tw"><table><tr><th>'+T('Kategoria','Category')+'</th>'+lg.map(function(l){return'<th class="n">'+lgcell(l)+'</th>'}).join('')+'</tr>';
+ cats.forEach(function(c){var ps=lg.map(function(l){return (cc[c[0]+'|'+l]||0)/tot[l]*100}),mx=Math.max.apply(null,ps);
+  o+='<tr><td>'+c[1]+'</td>'+ps.map(function(p){return'<td class="n"'+heat(p,mx)+'>'+p.toFixed(1)+'</td>'}).join('')+'</tr>'});
+ return o+'</table></div>';
 }
 function iconsPage(){
  var root=document.getElementById('app'),ms=Object.keys(D.modes);
@@ -146,15 +177,25 @@ function iconsPage(){
  list.sort(function(a,b){var x=key(a),y=key(b);var c=x<y?-1:x>y?1:0;return (c*st.dir)||(b.n-a.n)});
  var cols=[['label',T('Ikona','Icon')],['n',T('Gracze','Players')],['share','%'],['names',T('Różne nazwy','Distinct names')],['avg',T('Średnie MMR','Average MMR')],['mx',T('Najwyższe MMR','Highest MMR')]].concat(D.races.map(function(r){return['r:'+r,rn(r)]}));
  o+='<div class="note">'+T('Skan z ','Scan of ')+esc(m.date)+' · '+rows.length.toLocaleString()+T(' wierszy',' rows')+' · '+list.length+T(' ikon',' icons')+' · '+T('Kliknij nagłówek kolumny, aby sortować.','Click a column header to sort.')+(skipped?' · '+skipped.toLocaleString()+T(' wierszy drużyn (arranged) bez ikony nie jest liczonych',' arranged-team rows without an icon are not counted'):'')+'</div>';
- o+='<div class="tw"><table><tr><th class="n">#</th>'+cols.map(function(c,i){var on=c[0]==st.k;return'<th'+(i?' class="n"':'')+' style="cursor:pointer" data-k="'+c[0]+'">'+esc(c[1])+(on?(st.dir==1?' ▲':' ▼'):'')+'</th>'}).join('')+'</tr>';
+ o+='<div class="tw maintab"><table><tr><th class="n">#</th>'+cols.map(function(c,i){var on=c[0]==st.k;return'<th'+(i?' class="n"':'')+' style="cursor:pointer" data-k="'+c[0]+'">'+esc(c[1])+(on?(st.dir==1?' ▲':' ▼'):'')+'</th>'}).join('')+'</tr>';
  list.forEach(function(e,i){o+='<tr><td class="n">'+(i+1)+'</td><td>'+icon(e.id)+esc(e.label)+'</td><td class="n">'+e.n.toLocaleString()+'</td><td class="n">'+e.share.toFixed(1)+'</td><td class="n">'+e.names.toLocaleString()+'</td><td class="n">'+e.avg+'</td><td class="n">'+e.mx+'</td>'+D.races.map(function(r){return'<td class="n">'+(e.rc[r]||0).toLocaleString()+'</td>'}).join('')+'</tr>'});
  o+='</table></div><p class="dim">'+T('Gracze = wiersze rankingu z tą ikoną; jedna osoba może mieć kilka wierszy (po jednym na rasę). Filtr rasy i ligi zmienia, w jakim gronie liczona jest popularność.','Players = ladder rows that use the icon; one person can have several rows (one per race). The race and league filters change the group in which popularity is counted.')+'</p>';
+ o+=leagueIcons(m);
  root.innerHTML=o;ictabsBind(st);
  function rd(){st.m=document.getElementById('im').value;st.race=document.getElementById('ir').value;var l=document.getElementById('il');st.league=l?l.value:'';st.min=+document.getElementById('in').value||0;iconsPage()}
  ['im','ir','il','in'].forEach(function(id){var e=document.getElementById(id);if(e)e.onchange=rd});
  var qi=document.getElementById('iq');qi.oninput=function(){st.q=qi.value;var p=qi.selectionStart;iconsPage();var n=document.getElementById('iq');n.focus();n.setSelectionRange(p,p)};
  document.querySelectorAll('th[data-k]').forEach(function(th){th.onclick=function(){var k=th.getAttribute('data-k');if(st.k==k)st.dir=-st.dir;else{st.k=k;st.dir=k=='label'?1:-1}iconsPage()}});
 }
+function w3cByLeague(){
+ var S=D.w3c_stats||{};if(!S.by_league||!S.by_league.length)return '';
+ var o='<h2>'+T('W3Champions według ligi Battle.net','W3Champions by Battle.net league')+'</h2><p class="dim">'+T('Ilu graczy rankingu 1v1 (po BattleTagu, liga z najlepszego wpisu) ma konto na W3Champions i grało w sezonie ','How many 1v1 ladder players (by BattleTag, league of their best entry) have a W3Champions account and played in season ')+S.season+'.</p>';
+ o+='<div class="tw"><table class="w3bars"><tr><th>'+T('Liga','League')+'</th><th class="n">'+T('Gracze','Players')+'</th><th>'+T('Konto W3C','W3C account')+'</th><th>'+T('Gra w sezonie ','Plays in season ')+S.season+'</th><th>'+T('Najczęstsze ligi W3C','Most common W3C leagues')+'</th></tr>';
+ S.by_league.forEach(function(x){var a=x[2]/x[1]*100,b=x[3]/x[1]*100,cr=(S.cross[x[0]]||[]).map(function(c){return esc(c[0])+' <span class="dim">'+c[1]+'</span>'}).join(', ');
+  o+='<tr><td>'+lgcell(x[0])+'</td><td class="n">'+x[1].toLocaleString()+'</td><td><div class="pbar"><span style="width:'+a.toFixed(1)+'%"></span></div>'+a.toFixed(1)+'%</td><td><div class="pbar s"><span style="width:'+b.toFixed(1)+'%"></span></div>'+b.toFixed(1)+'%</td><td class="small">'+cr+'</td></tr>'});
+ o+='</table></div>';
+ if(S.rho!=null)o+='<p class="note">'+T('Rankingi obu serwisów mocno się zgadzają: korelacja miejsc (Spearman) wynosi ','The two ladders agree strongly: the rank correlation (Spearman) is ')+S.rho.toFixed(2)+T(' dla ',' for ')+S.n.toLocaleString()+T(' graczy grających w obecnym sezonie. Porównujemy tylko kolejność graczy, nie liczby MMR, bo skale są różne.',' players of the current season. Only the order of players is compared, not the MMR numbers, because the scales differ.')+'</p>';
+ return o}
 function w3cPage(){
  var root=document.getElementById('app'),W=D.w3c||{accounts:[],season:null};
  var st=window._sw=window._sw||{q:QS.get('q')||'',league:QS.get('league')||'',race:QS.get('race')||'',cur:QS.get('current')||'',sort:QS.get('sort')||'rank',dir:QS.get('dir')=='-1'?-1:1,shown:100};
@@ -167,6 +208,7 @@ function w3cPage(){
  var cur=W.accounts.filter(function(a){return a.current}).length;
  var o='<div class="note">'+T('Gracze z rankingu Battle.net 1v1, którzy kiedykolwiek grali na W3Champions (dowolny sezon), z potwierdzonym BattleTagiem. MMR na W3Champions i MMR na Battle.net mają różne skale (około 1000–3000 kontra do około 6600), więc nie porównuj ich wprost.','Players from the Battle.net 1v1 ladder who have ever played on W3Champions (any season), with a confirmed BattleTag. W3Champions MMR and Battle.net MMR use different scales (about 1000-3000 versus up to about 6600), so do not compare them directly.')+'</div>';
  o+='<div class="cards"><div class="card"><b>'+W.accounts.length.toLocaleString()+'</b><span>'+T('graczy w obu miejscach','players in both')+'</span></div><div class="card"><b>'+cur.toLocaleString()+'</b><span>'+T('grało w sezonie ','played in season ')+W.season+'</span></div></div>';
+ o+=w3cByLeague();
  var sopts=[['rank',T('miejsce w rankingu','ladder rank')],['bmmr',T('MMR Battle.net','Battle.net MMR')],['wmmr',T('MMR W3Champions','W3Champions MMR')],['level',T('poziom','level')],['season',T('ostatni sezon W3C','last W3C season')],['name',T('nazwa','name')]];
  o+='<div class="ctl"><label>'+T('Szukaj','Search')+' <input id="wq" value="'+esc(st.q)+'" placeholder="'+T('nazwa lub BattleTag','name or BattleTag')+'"></label>';
  o+='<label>'+T('Liga','League')+' <select id="wl"><option value="">'+T('wszystkie','all')+'</option>'+Object.keys(D.leagues).map(function(k){return'<option value="'+k+'"'+(k==st.league?' selected':'')+'>'+lgopt(k)+'</option>'}).join('')+'</select></label>';
@@ -217,7 +259,7 @@ function render(){
  chrome();var p=document.body.dataset.page;
  if(p=='home')homePage();else if(p=='ranking')rankingPage();else if(p=='records')recordsPage();else if(p=='icons')iconsPage();else if(p=='w3c')w3cPage();else if(p=='activity')activityPage();else if(p=='about')aboutPage();
  var f=document.getElementById('foot');if(f)f.textContent=T('Dane: ranking gry Warcraft III · aktualizacja ','Data: Warcraft III in-game ladder · updated ')+D.built}
-document.querySelectorAll('.lang button').forEach(function(b){b.onclick=function(){setLang(b.dataset.l)}});
+var _ls=document.getElementById('langsel');if(_ls)_ls.onchange=function(){setLang(this.value)};
 
 (function(){
  var app=document.getElementById('app');if(!app)return;
@@ -242,4 +284,6 @@ document.querySelectorAll('.lang button').forEach(function(b){b.onclick=function
 })();
 render();
 if(window._deco)window._deco();
+(function(){var a=document.querySelector('nav a.on'),n=a&&a.parentNode;if(n&&n.scrollWidth>n.clientWidth)n.scrollLeft=Math.max(0,a.offsetLeft-n.offsetLeft-(n.clientWidth-a.offsetWidth)/2)})();
+if(location.hash){var _h=document.getElementById(location.hash.slice(1));if(_h)_h.scrollIntoView()}   // pages are drawn by script: jump to #anchor after drawing
 })();
