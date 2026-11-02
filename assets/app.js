@@ -1,5 +1,5 @@
 (function(){
-var D=window.SITE_DATA,TR=window.I18N||{},LANGS=['pl','en','zh','de'],L='';
+var D=window.SITE_DATA,TR=window.I18N||{},LANGS=['en','zh','ko','pl','de'],L='';
 try{L=localStorage.getItem('lang')||''}catch(e){}
 if(LANGS.indexOf(L)<0)L='en';
 var QS=new URLSearchParams(location.search);
@@ -28,7 +28,8 @@ function hist(el,m,race){
   s+='<rect x="'+x+'" y="'+(H-bh)+'" width="19" height="'+bh+'" fill="'+(race?'var(--'+RC[race]+')':'var(--gold)')+'"><title>'+r[0]+'-'+(r[0]+D.bin-1)+': '+r[idx]+'</title></rect>';
   if(i%3==0)s+='<text x="'+(x+9)+'" y="'+(H+14)+'" text-anchor="middle">'+r[0]+'</text>'});
  s+='<text x="2" y="12">'+mx+'</text><text x="2" y="'+H+'">0</text></svg>';el.innerHTML=s}
-function games(r){return r[4]+r[5]}
+function games(r){return r[4]==null||r[5]==null?null:r[4]+r[5]}
+function qv(v){return v==null?'<span class="dim" title="'+esc(T('nie udało się odczytać ze zrzutu','could not be read from the screenshot'))+'">?</span>':v}
 function qa(r){return r&&r[10]?'<span class="qa" title="'+esc(T('odczyt do sprawdzenia','reading to be checked'))+'"></span>':''}
 var SORTS={rank:function(r){return r[0]},mmr:function(r){return r[3]},games:games,wins:function(r){return r[4]},losses:function(r){return r[5]},wr:function(r){var g=games(r);return g?r[4]/g:0},level:function(r){return r[6]||0}};
 function lgname(id){var l=D.leagues[id];if(!l)return '?';var nm=l[L=='en'?'name':L]||l.name;return nm||T('Dywizja ','Division ')+l.n}
@@ -60,7 +61,7 @@ function rankingPage(){
  var f=SORTS[st.sort];rows=rows.slice().sort(function(a,b){return(f(a)-f(b))*st.dir||a[0]-b[0]});
  o+='<div class="note">'+T('Skan z ','Scan of ')+esc(m.date)+' · '+m.rows.toLocaleString()+T(' wierszy',' rows')+(m.sample?T(' (próbka: tylko pierwsze strony rankingu)',' (sample: first pages of the ladder only)'):'')+(m.partial?' · <b class="down">'+T('skan niepełny – część rankingu','incomplete scan – part of the ladder only')+'</b>':'')+' · '+T('mediana MMR ','median MMR ')+m.mmr_median+' · <b>'+rows.length.toLocaleString()+'</b> '+T('pasuje do filtrów','match the filters')+'<br><span class="dim">'+T('Miejsce w rankingu gry wynika z poziomu konta, nie z MMR – żeby zobaczyć najsilniejszych graczy, sortuj po MMR.','The in-game ladder rank follows account level, not MMR – sort by MMR to see the strongest players.')+'</span></div>';
  o+='<div class="tw"><table><tr><th class="n">#</th><th>'+T('Gracz','Player')+'</th>'+(Object.keys(D.leagues).length?'<th>'+T('Liga','League')+'</th>':'')+'<th class="n">'+T('Poz.','Lvl')+'</th><th>'+T('Rasa','Race')+'</th><th class="n">MMR</th><th class="n">'+T('Wygr.','Wins')+'</th><th class="n">'+T('Przegr.','Losses')+'</th><th class="n">'+T('Gry','Games')+'</th><th class="n">%</th></tr>';
- rows.slice(0,st.shown).forEach(function(r){var g=games(r);o+='<tr><td class="n">'+r[0]+'</td><td>'+icon(r[7])+nm(r[1],r[8],r[0])+qa(r)+knownBadge(KN[r[0]],r[1])+'</td>'+(Object.keys(D.leagues).length?'<td>'+lgcell(r[9])+'</td>':'')+'<td class="n">'+(r[6]==null?'<span class="dim">–</span>':r[6])+'</td><td>'+rc(r[2])+'</td><td class="n">'+r[3]+'</td><td class="n">'+r[4]+'</td><td class="n">'+r[5]+'</td><td class="n">'+g+'</td><td class="n">'+(g?Math.round(r[4]/g*100):0)+'</td></tr>'});
+ rows.slice(0,st.shown).forEach(function(r){var g=games(r);o+='<tr><td class="n">'+r[0]+'</td><td>'+icon(r[7])+nm(r[1],r[8],r[0])+qa(r)+knownBadge(KN[r[0]],r[1])+'</td>'+(Object.keys(D.leagues).length?'<td>'+lgcell(r[9])+'</td>':'')+'<td class="n">'+(r[6]==null?'<span class="dim">–</span>':r[6])+'</td><td>'+rc(r[2])+'</td><td class="n">'+qv(r[3])+'</td><td class="n">'+qv(r[4])+'</td><td class="n">'+qv(r[5])+'</td><td class="n">'+qv(g)+'</td><td class="n">'+(g==null?qv(null):(g?Math.round(r[4]/g*100):0))+'</td></tr>'});
  o+='</table></div><p class="dim">'+T('Pokazano ','Showing ')+Math.min(st.shown,rows.length)+T(' z ',' of ')+rows.length.toLocaleString()+(rows.length>st.shown?' · <a href="#" id="more">'+T('pokaż 200 więcej','show 200 more')+'</a>':'')+'</p>';
  var at=st.m.indexOf('arranged')>=0;                     // arranged teams have no race: one histogram only
  o+='<h2>'+T('Rozkład MMR','MMR distribution')+'</h2><div class="'+(at?'':'grid2')+'"><div id="h1" class="card"></div>'+(at?'':'<div id="h2" class="card"></div>')+'</div>';
@@ -111,7 +112,7 @@ function recordsPage(){
  var OM=D.omni||{all:[],modes:{}},omodes=Object.keys(OM.modes);
  if(OM.all.length){var AB={'Human':'HU','Orc':'ORC','Undead':'UD','Night Elf':'NE','Random':'RND'};
   var ok=window._so||'all';if(ok!='all'&&!OM.modes[ok])ok='all';var allv=ok=='all',list=allv?OM.all:OM.modes[ok];
-  o+='<h2 id="omni">'+T('Wszędzie w rankingu','Everywhere on the ladder')+'</h2><p class="dim">'+(allv?T('BattleTagi z największą liczbą wpisów we wszystkich rankingach Battle.net razem (1v1, 2v2, 3v3, 4v4, FFA i drużyny zgrane – każda drużyna to jeden wpis; ostatnie pełne skany z odczytanymi tagami).','BattleTags with the most entries in all Battle.net ladders together (1v1, 2v2, 3v3, 4v4, FFA and arranged teams – each team is one entry; latest complete scans with tags read).'):T('BattleTagi z największą liczbą wpisów w rankingu 1v1 (osobny wpis na każdą rasę i bramę; najwyżej 15 = 5 ras × 3 bramy), ostatni pełny skan.','BattleTags with the most entries in the 1v1 ladder (a separate entry per race and gateway; at most 15 = 5 races × 3 gateways), latest complete scan.'))+'</p>';
+  o+='<h2 id="omni">'+T('Wszędzie w rankingu','Everywhere on the ladder')+'</h2><p class="dim">'+(allv?T('BattleTagi z największą liczbą wpisów we wszystkich rankingach Battle.net razem (1v1, 2v2, 3v3, 4v4, FFA i drużyny zgrane – każda drużyna to jeden wpis; ostatnie pełne skany z odczytanymi tagami).','BattleTags with the most entries in all Battle.net ladders together (1v1, 2v2, 3v3, 4v4, FFA and arranged teams – each team is one entry; latest complete scans with tags read).'):T('BattleTagi z największą liczbą wpisów w rankingu ','BattleTags with the most entries in the ')+esc(ok)+T(' (osobny wpis na każdą rasę i bramę; najwyżej 15 = 5 ras × 3 bramy), ostatni pełny skan.',' ladder (a separate entry per race and gateway; at most 15 = 5 races × 3 gateways), latest complete scan.'))+'</p>';
   o+='<div class="ctl"><label>'+T('Tryb','Mode')+' <select id="om"><option value="all"'+(allv?' selected':'')+'>'+T('wszystkie tryby','all modes')+'</option>'+omodes.map(function(x){return'<option'+(x==ok?' selected':'')+'>'+x+'</option>'}).join('')+'</select></label>'+(omodes.length<5?'<span class="dim">'+T('Tagi odczytane na razie w: ','Tags read so far in: ')+esc(omodes.join(', '))+'</span>':'')+'</div>';
   o+='<div class="tw"><table><tr><th class="n">#</th><th>BattleTag</th><th class="n">'+T('Wpisy','Entries')+'</th><th>'+(allv?T('Tryby','Modes'):T('Rasy','Races'))+'</th><th class="n">'+T('Najlepsze MMR','Best MMR')+'</th>'+(allv?'':'<th class="n">'+T('Najlepsze miejsce','Best rank')+'</th>')+'</tr>';
   list.forEach(function(x,i){var det=allv?Object.keys(x.modes).map(function(k){return esc(k)+'×'+x.modes[k]}).join(', '):D.races.filter(function(r){return x.races[r]}).map(function(r){return '<span class="'+(RC[r]||'')+'" title="'+esc(rn(r))+'">'+AB[r]+'×'+x.races[r]+'</span>'}).join(', ');
@@ -273,7 +274,7 @@ function w3cPage(){
 function actTable(title,head,list,row){
  if(!list.length)return '';
  return '<h2>'+title+'</h2><div class="tw"><table><tr>'+head+'</tr>'+list.map(row).join('')+'</table></div>'}
-var LOC={pl:'pl-PL',en:'en-GB',zh:'zh-CN',de:'de-DE'};
+var LOC={pl:'pl-PL',en:'en-GB',zh:'zh-CN',ko:'ko-KR',de:'de-DE'};
 var Z12=('US/,Canada/,Australia/,NZ,America/New_York,America/Detroit,America/Chicago,America/Denver,America/Boise,America/Phoenix,'+
  'America/Los_Angeles,America/Anchorage,America/Juneau,America/Sitka,America/Metlakatla,America/Yakutat,America/Nome,America/Adak,'+
  'America/Menominee,America/Indiana,America/Kentucky,America/North_Dakota,America/Indianapolis,America/Louisville,America/Fort_Wayne,'+
@@ -301,12 +302,12 @@ function activityPage(){
  var a0=D.activity[st.m],ALT=a0.alt||{};if(!st.w||(st.w!='new'&&!ALT[st.w]))st.w='new';var a=st.w=='new'?a0:ALT[st.w];
  st.ws=st.ws||{};
  function win(sec){var w=st.ws[sec]||st.w;if(w!='new'&&!ALT[w])w='new';return {w:w,a:w=='new'?a0:ALT[w]}}
- function dd(x){return x?x.slice(8,10)+'.'+x.slice(5,7):''}
- function segFor(sec){if(!(ALT.old||ALT.both))return '';var W=win(sec);
-  return ' <span class="mseg">'+[['new',T('Najnowsze','Latest')],['old',T('Poprzednie','Previous')],['both',T('Oba razem','Both')]].filter(function(x){return x[0]=='new'||ALT[x[0]]}).map(function(x){
+ function dd(x){return x?x.slice(8,10)+'.'+x.slice(5,7)+x.slice(10):''}
+ function segFor(sec){if(!(ALT.old||ALT.both||ALT.week))return '';var W=win(sec);
+  return ' <span class="mseg">'+[['new',T('Najnowsze','Latest')],['old',T('Poprzednie','Previous')],['both',T('Oba razem','Both')],['week',T('7 dni','7 days')]].filter(function(x){return x[0]=='new'||ALT[x[0]]}).map(function(x){
    return '<button data-sw="'+sec+'|'+x[0]+'" class="'+(W.w==x[0]?'on':'')+'">'+x[1]+'</button>'}).join('')+'</span><span class="mdates">'+dd(W.a.from)+' → '+dd(W.a.to)+'</span>'}
  var o='<div class="ctl"><label class="col">'+T('Tryb','Mode')+' <select id="am">'+ms.map(function(m){return'<option'+(m==st.m?' selected':'')+'>'+m+'</option>'}).join('')+'</select></label>';
- if(ALT.old||ALT.both)o+='<div class="wsel"><span>'+T('Okno','Window')+'</span><div class="seg">'+[['new',T('Najnowsze','Latest')],['old',T('Poprzednie','Previous')],['both',T('Oba razem','Both')]].filter(function(x){return x[0]=='new'||ALT[x[0]]}).map(function(x){
+ if(ALT.old||ALT.both||ALT.week)o+='<div class="wsel"><span>'+T('Okno','Window')+'</span><div class="seg">'+[['new',T('Najnowsze','Latest')],['old',T('Poprzednie','Previous')],['both',T('Oba razem','Both')],['week',T('7 dni','7 days')]].filter(function(x){return x[0]=='new'||ALT[x[0]]}).map(function(x){
   return'<button data-w="'+x[0]+'" class="'+(st.w==x[0]?'on':'')+'">'+x[1]+'</button>'}).join('')+'</div></div>';
  var tz='';try{tz=Intl.DateTimeFormat().resolvedOptions().timeZone||''}catch(e){}
  o+='<div class="scant" title="'+T('Czas Twojej strefy','Your local time')+(tz?' ('+esc(tz)+')':'')+'"><div><span class="dim">'+(st.w=='new'?T('Poprzedni skan','Previous scan'):T('Początek okna','Window start'))+'</span><b>'+scanWhen(a.t0,a.from)+'</b></div>'+
@@ -320,10 +321,14 @@ function activityPage(){
  if(S.games!=null){
   var hh=S.hours.toFixed(1)+' h',per=Math.round(S.pg/S.games);
   o+='<details class="help"><summary><h2>'+T('Liczba gier','Number of games')+'</h2><span class="q" title="'+T('Jak liczymy?','How is this counted?')+'">?</span>'+segFor('num')+'</summary><div class="helpbox">'+
-   '<p><b>Battle.net.</b> '+(MIX?T('Przy każdym skanie odczytujemy cały ranking z gry (każdą stronę: zrzut ekranu i rozpoznawanie tekstu). Gracze są łączeni po BattleTagu, a gdy w którymś skanie wiersz nie ma tagu – po nicku i rasie (tylko jednoznaczne dopasowania). Dla tych par (','At every scan we read the whole in-game ladder (every page: screenshot and text recognition). Players are joined by BattleTag, and when a row has no tag in one of the scans – by name and race (unique matches only). For these pairs ('):KEY?T('Przy każdym skanie odczytujemy cały ranking z gry (każdą stronę: zrzut ekranu i rozpoznawanie tekstu). Starszy skan nie ma BattleTagów, więc wiersze łączymy po nicku i rasie (drużyny po składzie), tylko gdy dopasowanie jest jednoznaczne. Dla tych par (','At every scan we read the whole in-game ladder (every page: screenshot and text recognition). The older scan has no BattleTags, so rows are joined by name and race (teams by their line-up), only when the match is unambiguous. For these pairs ('):T('Przy każdym skanie odczytujemy cały ranking z gry (każdą stronę: zrzut ekranu i rozpoznawanie tekstu). Dla graczy rozpoznanych po BattleTagu w obu skanach (','At every scan we read the whole in-game ladder (every page: screenshot and text recognition). For the players recognised by BattleTag in both scans ('))+nf(S.pairs)+T(') sumujemy nowe wygrane i przegrane: ',') we add up the new wins and losses: ')+nf(S.pg)+(TM?T('. W jednej grze grają dwie drużyny: ','. Teams taking part in one game: '):T('. W jednej grze bierze udział tylu graczy: ','. Players taking part in one game: '))+per+' → ≈ '+nf(S.games)+'. '+T('To szacunek – części przeciwników nie rozpoznajemy.','This is an estimate – some opponents are not recognised.')+'</p>'+
+   '<p><b>Battle.net.</b> '+(MIX?T('Przy każdym skanie odczytujemy cały ranking z gry (każdą stronę: zrzut ekranu i rozpoznawanie tekstu). Gracze są łączeni po BattleTagu, a gdy w którymś skanie wiersz nie ma tagu – po nicku i rasie (tylko jednoznaczne dopasowania). Dla tych par (','At every scan we read the whole in-game ladder (every page: screenshot and text recognition). Players are joined by BattleTag, and when a row has no tag in one of the scans – by name and race (unique matches only). For these pairs ('):KEY?T('Przy każdym skanie odczytujemy cały ranking z gry (każdą stronę: zrzut ekranu i rozpoznawanie tekstu). Starszy skan nie ma BattleTagów, więc wiersze łączymy po nicku i rasie (drużyny po składzie), tylko gdy dopasowanie jest jednoznaczne. Dla tych par (','At every scan we read the whole in-game ladder (every page: screenshot and text recognition). The older scan has no BattleTags, so rows are joined by name and race (teams by their line-up), only when the match is unambiguous. For these pairs ('):T('Przy każdym skanie odczytujemy cały ranking z gry (każdą stronę: zrzut ekranu i rozpoznawanie tekstu). Dla graczy rozpoznanych po BattleTagu w obu skanach (','At every scan we read the whole in-game ladder (every page: screenshot and text recognition). For the players recognised by BattleTag in both scans ('))+nf(S.pairs)+T(') liczymy nowe wygrane i przegrane: ',') we count the new wins and losses: ')+nf(S.wins||0)+' / '+nf(S.losses||0)+'. '+
+   T('Każda gra ma zwycięzców i przegranych, więc gier było co najmniej ','Every game has winners and losers, so there were at least ')+
+   (st.m=='FFA'?nf(S.wins||0)+' '+T('(jeden zwycięzca w grze)','(one winner a game)'):({'2v2':2,'3v3':3,'4v4':4}[st.m]?nf(S.wins||0)+' / '+{'2v2':2,'3v3':3,'4v4':4}[st.m]+' '+T('(tylu zwycięzców w grze)','(winners a game)'):'max('+nf(S.wins||0)+', '+nf(S.losses||0)+')'))+
+   ' → ≈ '+nf(S.games)+'. '+T('To dolna granica – części przeciwników nie rozpoznajemy.','This is a lower bound – some opponents are not recognised.')+'</p>'+
    (S.w3c_games!=null?'<p><b>W3Champions.</b> '+T('Ich publiczne statystyki podają liczbę gier na każdą dobę (czas UTC). Z każdej doby bierzemy tylko tę część, która mieści się między końcami dwóch skanów (',
    'Their public statistics give the number of games for every day (UTC time). From every day we take only the part that falls between the ends of the two scans (')+hh+T('), zakładając, że gry rozkładają się równo w ciągu doby → ≈ ','), assuming games are spread evenly over the day → ≈ ')+nf(S.w3c_games)+'.</p>':'')+
-   (S.summed?'<p>'+T('Oba okna razem: gry, wygrane i przegrane to suma obu okien (bezpośrednie porównanie pierwszego i ostatniego skanu rozpoznaje mniej graczy, gdy pierwszy skan nie ma BattleTagów).','Both windows together: games, wins and losses are the sum of the two windows (a direct comparison of the first and the last scan recognises fewer players when the first scan has no BattleTags).')+'</p>':'')+
+   (S.summed>2||(S.summed&&win('num').w=='week')?'<p>'+T('7 dni: gry, wygrane i przegrane to suma kolejnych okien ostatnich 7 dni (liczba okien: ','7 days: games, wins and losses are the sum of the consecutive windows of the last 7 days (windows: ')+S.summed+T('; dopóki skanów jest mniej, wszystkie dostępne).','; while there are fewer scans, all of them).')+'</p>':'')+
+   (S.summed&&!(S.summed>2||win('num').w=='week')?'<p>'+T('Oba okna razem: gry, wygrane i przegrane to suma obu okien (bezpośrednie porównanie pierwszego i ostatniego skanu rozpoznaje mniej graczy, gdy pierwszy skan nie ma BattleTagów).','Both windows together: games, wins and losses are the sum of the two windows (a direct comparison of the first and the last scan recognises fewer players when the first scan has no BattleTags).')+'</p>':'')+
    '<p>'+T('„Na dobę” i „na godzinę”: obie liczby dzielimy przez ten sam czas między skanami (','“Per day” and “per hour”: both numbers are divided by the same time between the scans (')+hh+').</p></div></details><div class="cards act">';
   o+='<div class="card svc"><img src="assets/bnet.png" alt="Battle.net" title="Battle.net"><div><b>≈ '+nf(S.games)+'</b><em class="unit">'+T('gier – każda gra liczona raz','games – each game counted once')+'</em><em>≈ '+nf(day(S.games))+' '+T('na dobę','per day')+' · ≈ '+nf(S.games/S.hours)+' '+T('na godzinę','per hour')+'</em></div></div>';
   if(S.w3c_games!=null){
@@ -364,7 +369,10 @@ function activityPage(){
   {k:'w',h:T('Wygr.','Wins'),n:1,v:function(o){return o.w},td:function(o){return o.w==null?dash:'<span class="up">'+o.w+'</span>'}},
   {k:'l',h:T('Przegr.','Losses'),n:1,v:function(o){return o.l},td:function(o){return o.l==null?dash:'<span class="down">'+o.l+'</span>'}},
   {k:'g',h:T('Gry','Games'),n:1,v:function(o){return o.w==null||o.l==null?null:o.w+o.l},td:function(o){return o.w==null||o.l==null?dash:o.w+o.l}},
+  {k:'pd',h:T('Na dobę','Per day'),n:1,v:function(o){return o.pd},td:function(o){return o.pd==null?dash:o.pd.toFixed(1)}},
   {k:'p',h:'%',n:1,v:function(o){return pct(o.w,o.l)},td:function(o){var p=pct(o.w,o.l);return p==null?dash:Math.round(p)}}];
+ // games per day of a row = its window games / (hours of that window / 24); new players have no window games (their whole record) - none
+ function withPd(list,A){var h=A&&A.sum&&A.sum.hours;return list.map(function(o){o.pd=h&&o.w!=null&&o.l!=null?(o.w+o.l)/(h/24):null;return o})}
  var KCOLS=[{k:'nick',h:T('Znany jako','Known as'),v:function(o){return (o.pro||'').toLowerCase()},td:function(o){return '<b>'+esc(o.pro||'')+'</b>'}}].concat(COLS);
  st.sort=st.sort||{};
  st.more=st.more||{};
@@ -381,18 +389,18 @@ function activityPage(){
    rows.slice(0,lim&&!st.more[id]?lim:rows.length).map(function(o){return'<tr>'+COLS_.map(function(k,n){return'<td class="'+cls(k,n)+'">'+k.td(o)+'</td>'}).join('')+'</tr>'}).join('')+
    (lim&&rows.length>lim?'<tr class="morerow"><td colspan="'+COLS_.length+'"><a href="#" data-more="'+id+'">'+
     (st.more[id]?'▲ '+T('Zwiń','Collapse')+' ▲':'▼ '+T('Pokaż wszystkie','Show all')+' ('+rows.length+') ▼')+'</a></td></tr>':'')+'</table></div>'}
- o+=sTable('g',T('Najwięcej rozegranych gier','Most games played')+segFor('g'),'g',win('g').a.games.filter(function(r){return r[2]>0}).map(pairRow),null,null,null,10);
- o+=sTable('j',T('Największe zmiany MMR','Biggest MMR changes')+segFor('j'),'chg',win('j').a.jumps.map(pairRow),(st.m.indexOf('arranged')>=0?T('Drużyny, które przed oknem miały co najmniej 25 gier – nowe drużyny w kalibracji zmieniają MMR nawet o 300 na grę.','Teams with at least 25 games before the window – new teams in placement move up to 300 MMR per game.'):T('Gracze, którzy przed oknem mieli co najmniej 25 gier – nowe konta w kalibracji zmieniają MMR nawet o 300 na grę.','Players with at least 25 games before the window – new accounts in placement move up to 300 MMR per game.')),null,null,10);
+ o+=sTable('g',T('Najwięcej rozegranych gier','Most games played')+segFor('g'),'g',withPd(win('g').a.games.filter(function(r){return r[2]>0}).map(pairRow),win('g').a),null,null,null,10);
+ o+=sTable('j',T('Największe zmiany MMR','Biggest MMR changes')+segFor('j'),'chg',withPd(win('j').a.jumps.map(pairRow),win('j').a),(st.m.indexOf('arranged')>=0?T('Drużyny, które przed oknem miały co najmniej 25 gier – nowe drużyny w kalibracji zmieniają MMR nawet o 300 na grę.','Teams with at least 25 games before the window – new teams in placement move up to 300 MMR per game.'):T('Gracze, którzy przed oknem mieli co najmniej 25 gier – nowe konta w kalibracji zmieniają MMR nawet o 300 na grę.','Players with at least 25 games before the window – new accounts in placement move up to 300 MMR per game.')),null,null,10);
  o+=sTable('n',(st.m.indexOf('arranged')>=0?T('Nowe drużyny w rankingu','New teams in the ladder'):T('Nowi w rankingu','New in the ladder'))+segFor('n'),'mmr',win('n').a.new.map(newRow),null,null,null,10);
  o+='<p class="dim">'+(a.match=='tag'?T('Wygrane, przegrane, gry, % i zmiana MMR dotyczą tylko czasu między dwoma skanami; miejsce, liga, poziom i MMR pochodzą z aktualnego skanu. Nowi gracze nie mają poprzedniego skanu, więc pokazujemy ich cały bilans. Gracze dopasowani po BattleTagu; wartości odczytywane przez OCR, pojedyncze mogą być błędne.','Wins, losses, games, % and MMR change cover only the time between the two scans; rank, league, level and MMR come from the current scan. New players have no previous scan, so their whole record is shown. Players are matched by BattleTag; values are read by OCR, single ones may be wrong.'):
   T('Wygrane, przegrane, gry, % i zmiana MMR dotyczą tylko czasu między dwoma skanami; miejsce, liga, poziom i MMR pochodzą z aktualnego skanu. Nowi gracze nie mają poprzedniego skanu, więc pokazujemy ich cały bilans. Gracze dopasowani po BattleTagu, a bez tagu po nicku i rasie (drużyny po składzie); wartości odczytywane przez OCR, pojedyncze mogą być błędne.','Wins, losses, games, % and MMR change cover only the time between the two scans; rank, league, level and MMR come from the current scan. New players have no previous scan, so their whole record is shown. Players are matched by BattleTag, and without a tag by name and race (teams by their line-up); values are read by OCR, single ones may be wrong.'))+'</p>';
  var K=D.known||{pro:[],famous:[]};
  function inLadder(g){var seen={},out=[];(a[g]||[]).forEach(function(r){if(!seen[r[12]]){seen[r[12]]=1;out.push(esc(r[12]))}});return out}
  function played(rows){return rows.map(pairRow).filter(function(x){return x.w!=null&&x.w+x.l>0}).sort(function(a,b){return (b.w+b.l)-(a.w+a.l)||b.mmr-a.mmr})}
- if(K.pro.length)o+=sTable('p',T('Aktywność zawodowców','Pro players activity')+segFor('p'),'g',played(win('p').a.pro||[]),
+ if(K.pro.length)o+=sTable('p',T('Aktywność zawodowców','Pro players activity')+segFor('p'),'g',withPd(played(win('p').a.pro||[]),win('p').a),
   T('Najlepsza ','Top ')+(K.top||K.pro.length)+T(' rankingu Elo warcraft3.info',' of the warcraft3.info Elo ranking')+(K.date?' ('+esc(K.date)+')':'')+'. '+T('Konto w tym rankingu ma ','Accounts in this ladder: ')+inLadder('pro').length+T(' z nich',' of them')+(inLadder('pro').length?': '+inLadder('pro').join(', '):'')+'. '+T('Większość zawodowców gra głównie na W3Champions.','Most pros play mainly on W3Champions.'),
   T('Nikt z zawodowców nie grał na Battle.net między skanami.','Nobody from the pro players played on Battle.net between the scans.'),KCOLS);
- if(K.famous.length)o+=sTable('f',T('Aktywność znanych graczy','Famous players activity')+segFor('f'),'g',played(win('f').a.famous||[]),
+ if(K.famous.length)o+=sTable('f',T('Aktywność znanych graczy','Famous players activity')+segFor('f'),'g',withPd(played(win('f').a.famous||[]),win('f').a),
   T('Znani gracze spoza listy zawodowców (streamerzy, osobistości, dawni zawodowcy) – lista ','Well-known players outside the pro list (streamers, personalities, former pros) – a list of ')+K.famous.length+T(' osób. Konto w tym rankingu ma ',' people. Accounts in this ladder: ')+inLadder('famous').length+(inLadder('famous').length?': '+inLadder('famous').join(', '):'')+'.',
   T('Nikt ze znanych graczy nie grał na Battle.net między skanami.','Nobody from the famous players played on Battle.net between the scans.'),KCOLS);
  var MA=D.most_active;
@@ -408,7 +416,7 @@ function activityPage(){
    MA.rows.map(function(r,i){return {rank:i+1,name:r[0],icon:r[1],lg:r[2],g:r[3],pd:r[4],br:r[5]}}),
    T('Gry gracza (BattleTag) ze wszystkich trybów i ras razem, z najnowszego okna każdego trybu: ','A player’s (BattleTag) games of all modes and races together, from the latest window of every mode: ')+
    MA.windows.map(function(w){return esc(w[0])+' '+dd(w[1])+' → '+dd(w[2])+(w[3]?' ('+Math.round(w[3])+' h)':'')}).join(', ')+'. '+
-   T('Gier na dobę = suma po trybach (gry w trybie / liczba dni okna trybu). Liczby z bazy Player Database; ta tabela nie zależy od przełączników powyżej.','Games per day = sum over the modes (games in the mode / days of the mode’s window). Numbers from the Player Database; this table does not follow the switches above.'),
+   T('Gier na dobę = suma po trybach (gry w trybie / długość okna trybu w dobach, liczona z godzin). Gry z bazy Player Database; ta tabela nie zależy od przełączników powyżej.','Games per day = sum over the modes (games in the mode / length of the mode’s window in days, from its hours). Games from the Player Database; this table does not follow the switches above.'),
    null,MCOLS,10);
  }
  root.innerHTML=o;document.getElementById('am').onchange=function(){st.m=this.value;st.w='new';st.ws={};activityPage()};
@@ -429,9 +437,9 @@ function homePage(){
  o+='</div><h2>'+T('Top 10 według MMR (1v1)','Top 10 by MMR (1v1)')+'</h2><div class="tw"><table><tr><th class="n">'+T('Miejsce','Ladder rank')+'</th><th>'+T('Gracz','Player')+'</th><th>'+T('Rasa','Race')+'</th><th class="n">MMR</th></tr>';
  m.top.slice().sort(function(a,b){return b[3]-a[3]||a[0]-b[0]}).slice(0,10).forEach(function(r){o+='<tr><td class="n">'+r[0]+'</td><td>'+icon(r[7])+nm(r[1],r[8],r[0])+qa(r)+'</td><td>'+rc(r[2])+'</td><td class="n">'+r[3]+'</td></tr>'});
  o+='</table></div>';
- o+='<h2>'+T('Wszystkie drabinki','All ladders')+'</h2><div class="tw"><table><tr><th>'+T('Tryb','Mode')+'</th><th class="n">'+T('Miejsc w rankingu','Ladder places')+'</th><th class="n">'+T('Graczy na stronie','Players on the site')+'</th><th>'+T('Skan','Scan')+'</th></tr>';
+ o+='<h2>'+T('Wszystkie drabinki','All ladders')+'</h2><div class="tw"><table><tr><th>'+T('Tryb','Mode')+'</th><th class="n">'+T('Miejsc w rankingu','Ladder places')+'</th><th class="n">'+T('Na stronie','On the site')+'</th><th>'+T('Skan','Scan')+'</th></tr>';
  Object.keys(D.modes).forEach(function(k){var x=D.modes[k];
-  o+='<tr><td><a href="ranking.html?mode='+encodeURIComponent(k)+'">'+esc(k)+'</a></td><td class="n">'+(x.size?x.size.toLocaleString():'<span class="dim">≥ '+x.rows.toLocaleString()+'</span>')+'</td><td class="n">'+x.rows.toLocaleString()+'</td><td>'+esc(x.date)+(x.partial?' · <b class="down">'+T('skan niepełny','incomplete scan')+'</b>':'')+'</td></tr>'});
+  o+='<tr><td><a href="ranking.html?mode='+encodeURIComponent(k)+'">'+esc(k)+'</a></td><td class="n">'+(x.size?x.size.toLocaleString():'<span class="dim">≥ '+x.rows.toLocaleString()+'</span>')+'</td><td class="n">'+x.rows.toLocaleString()+' <span class="dim">'+(k.indexOf('arranged')>=0?T('drużyn','teams'):T('graczy','players'))+'</span></td><td>'+esc(x.date)+(x.partial?' · <b class="down">'+T('skan niepełny','incomplete scan')+'</b>':'')+'</td></tr>'});
  o+='</table></div><p class="dim small">'+T('Miejsca w rankingu = ostatnia ranga pełnego skanu. Na stronie jest trochę mniej graczy, bo ukrywamy wiersze odczytane dwa razy (gracz przesunął się w trakcie skanu) i puste wiersze bez gracza.','Ladder places = the last rank of a complete scan. The site shows slightly fewer players because rows read twice (a player moved during the scan) and empty rows without a player are hidden.')+'</p>';
  document.getElementById('app').innerHTML=o}
 function builtText(){return D.built_ts?whenTs(D.built_ts):D.built}
@@ -453,15 +461,15 @@ document.querySelectorAll('.lang button[data-l]').forEach(function(b){b.onclick=
    if(c.querySelectorAll('select,input').length<3){c.classList.add('few');return}
    if(!window._fopen)c.classList.add('collapsed');
    if(!bar){bar=document.createElement('div');bar.className='mbar';c.parentNode.insertBefore(bar,c)}
-   var b=document.createElement('button');b.className='ftog'+(window._fopen?' on':'');b.textContent=(L=='pl'?'Filtry':L=='zh'?'筛选':L=='de'?'Filter':'Filters');
+   var b=document.createElement('button');b.className='ftog'+(window._fopen?' on':'');b.textContent=(L=='pl'?'Filtry':L=='zh'?'筛选':L=='ko'?'필터':L=='de'?'Filter':'Filters');
    b.onclick=function(){window._fopen=!window._fopen;b.classList.toggle('on',window._fopen);app.querySelectorAll('.ctl.dec').forEach(function(x){x.classList.toggle('collapsed',!window._fopen)})};
    bar.appendChild(b);
-   if(app.querySelector('table')&&!bar.querySelector('.ctog')){var t=document.createElement('button');t.className='ctog'+(document.body.classList.contains('cols-all')?' on':'');t.textContent=(L=='pl'?'Wszystkie kolumny':L=='zh'?'全部列':L=='de'?'Alle Spalten':'All columns');
+   if(app.querySelector('table')&&!bar.querySelector('.ctog')){var t=document.createElement('button');t.className='ctog'+(document.body.classList.contains('cols-all')?' on':'');t.textContent=(L=='pl'?'Wszystkie kolumny':L=='zh'?'全部列':L=='ko'?'모든 열':L=='de'?'Alle Spalten':'All columns');
     t.onclick=function(){t.classList.toggle('on',document.body.classList.toggle('cols-all'))};bar.appendChild(t)}
   });
   var tb=app.querySelector('table.srt');
   if(tb&&!app.querySelector('.ctog')){var w=tb.parentNode,h=w.previousElementSibling,mb=document.createElement('div');mb.className='mbar';
-   var t2=document.createElement('button');t2.className='ctog'+(document.body.classList.contains('cols-all')?' on':'');t2.textContent=(L=='pl'?'Wszystkie kolumny':L=='zh'?'全部列':L=='de'?'Alle Spalten':'All columns');
+   var t2=document.createElement('button');t2.className='ctog'+(document.body.classList.contains('cols-all')?' on':'');t2.textContent=(L=='pl'?'Wszystkie kolumny':L=='zh'?'全部列':L=='ko'?'모든 열':L=='de'?'Alle Spalten':'All columns');
    t2.onclick=function(){t2.classList.toggle('on',document.body.classList.toggle('cols-all'))};mb.appendChild(t2);(h||w).parentNode.insertBefore(mb,h||w)}
  }
  new MutationObserver(deco).observe(app,{childList:true});
