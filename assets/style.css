@@ -32,6 +32,12 @@ tr:hover td{background:#251e15}.tw{overflow-x:auto}
 td.small{font-size:13px}
 @media(max-width:700px){.pbar{width:60px}}
 .cards.act .card b i{font-style:normal}
+.mseg{display:inline-flex;vertical-align:middle;margin-left:12px;border:1px solid var(--line);border-radius:5px;overflow:hidden;font-family:"Segoe UI",system-ui,sans-serif}
+.mseg button{background:var(--panel2);color:var(--dim);border:0;border-right:1px solid var(--line);padding:3px 9px;font-size:12px;font-weight:400;cursor:pointer;min-height:0;width:auto}
+.mseg button:last-child{border-right:0}.mseg button.on{background:rgba(217,165,33,.85);color:#1a1409;font-weight:600}
+.mdates{font:400 12px "Segoe UI",system-ui,sans-serif;color:var(--dim);margin-left:8px;vertical-align:middle}
+@media(max-width:700px){.mseg{margin-left:6px}.mseg button{padding:3px 6px}.mdates{display:block;margin:4px 0 0}}
+.multi{border-bottom:1px dotted var(--dim);cursor:help}
 .wsel{display:flex;flex-direction:column;gap:4px}.wsel>span{font-size:13px}
 .seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
 .seg button{background:var(--panel2);color:var(--ink);border:0;border-right:1px solid var(--line);padding:6px 12px;cursor:pointer;font:inherit;font-size:14px}
@@ -71,6 +77,7 @@ details.help[open] .q{background:var(--gold);color:var(--bg)}
 .eclipse .big{width:72px;height:72px;filter:drop-shadow(0 0 6px rgba(0,116,224,.7))}
 .eclipse .moon{position:absolute;right:0;top:6px;border-radius:50%;box-shadow:0 0 0 2px var(--panel)}
 .cards.act .card.svc em{font-size:15px;line-height:1.45}
+.cards.act .card.svc em.unit{font-size:13px;color:var(--dim);margin-top:0}
 @media(max-width:700px){.cards.act .card.ratio{grid-column:1/-1}.card.svc>img{width:40px;height:40px}.cards.act .card.svc{gap:10px}.cards.act .card.svc em{font-size:13px}}
 .cards.act .card small{font-size:14px;color:var(--dim);font-weight:400}
 .rbar{display:flex;height:18px;border-radius:9px;overflow:hidden;border:1px solid var(--line);margin:6px 0 8px}
