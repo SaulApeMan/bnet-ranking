@@ -58,6 +58,9 @@ details.rqsub{margin-left:4px}
 .kn.kp{background:rgba(217,165,33,.18);color:var(--gold);border:1px solid rgba(217,165,33,.55)}
 .kn.kf{background:rgba(127,196,255,.14);color:#9fd0ff;border:1px solid rgba(127,196,255,.45)}
 p.more{margin:6px 0 0;text-align:right}
+tr.morerow td{padding:0;text-align:center;border-top:1px solid var(--line);background:rgba(217,165,33,.04)}
+tr.morerow a{display:block;padding:9px 0;color:var(--gold);text-decoration:none;font-weight:600;letter-spacing:.02em}
+tr.morerow a:hover{background:rgba(217,165,33,.12)}
 table.srt th.key{color:var(--ink);box-shadow:inset 0 -2px 0 var(--gold)}
 table.srt td.key{background:rgba(217,165,33,.09);font-weight:600}
 table.srt tr:hover td.key{background:rgba(217,165,33,.16)}

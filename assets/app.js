@@ -378,8 +378,9 @@ function activityPage(){
   function cls(k,n){return 'c-'+k.k+(k.n?' n':'')+(n==kc?' key':'')}
   return '<h2>'+title+'</h2>'+(sub?'<p class="dim small">'+sub+'</p>':'')+'<div class="tw"><table class="srt" data-kc="'+kc+'"><tr>'+COLS_.map(function(k,n){
    return'<th data-st="'+id+'" data-c="'+n+'" data-n="'+(k.n||k.hi?1:0)+'" class="'+cls(k,n)+'">'+k.h+(n==on?' <span class="sa">'+(dn?'▼':'▲')+'</span>':'')+'</th>'}).join('')+'</tr>'+
-   rows.slice(0,lim&&!st.more[id]?lim:rows.length).map(function(o){return'<tr>'+COLS_.map(function(k,n){return'<td class="'+cls(k,n)+'">'+k.td(o)+'</td>'}).join('')+'</tr>'}).join('')+'</table></div>'+
-   (lim&&rows.length>lim?'<p class="dim small more"><a href="#" data-more="'+id+'">'+(st.more[id]?T('Pokaż mniej','Show less'):T('Pokaż wszystkie','Show all')+' ('+rows.length+')')+'</a></p>':'')}
+   rows.slice(0,lim&&!st.more[id]?lim:rows.length).map(function(o){return'<tr>'+COLS_.map(function(k,n){return'<td class="'+cls(k,n)+'">'+k.td(o)+'</td>'}).join('')+'</tr>'}).join('')+
+   (lim&&rows.length>lim?'<tr class="morerow"><td colspan="'+COLS_.length+'"><a href="#" data-more="'+id+'">'+
+    (st.more[id]?'▲ '+T('Zwiń','Collapse')+' ▲':'▼ '+T('Pokaż wszystkie','Show all')+' ('+rows.length+') ▼')+'</a></td></tr>':'')+'</table></div>'}
  o+=sTable('g',T('Najwięcej rozegranych gier','Most games played')+segFor('g'),'g',win('g').a.games.filter(function(r){return r[2]>0}).map(pairRow),null,null,null,10);
  o+=sTable('j',T('Największe zmiany MMR','Biggest MMR changes')+segFor('j'),'chg',win('j').a.jumps.map(pairRow),(st.m.indexOf('arranged')>=0?T('Drużyny, które przed oknem miały co najmniej 25 gier – nowe drużyny w kalibracji zmieniają MMR nawet o 300 na grę.','Teams with at least 25 games before the window – new teams in placement move up to 300 MMR per game.'):T('Gracze, którzy przed oknem mieli co najmniej 25 gier – nowe konta w kalibracji zmieniają MMR nawet o 300 na grę.','Players with at least 25 games before the window – new accounts in placement move up to 300 MMR per game.')),null,null,10);
  o+=sTable('n',(st.m.indexOf('arranged')>=0?T('Nowe drużyny w rankingu','New teams in the ladder'):T('Nowi w rankingu','New in the ladder'))+segFor('n'),'mmr',win('n').a.new.map(newRow),null,null,null,10);
@@ -413,7 +414,8 @@ function activityPage(){
  root.innerHTML=o;document.getElementById('am').onchange=function(){st.m=this.value;st.w='new';st.ws={};activityPage()};
  document.querySelectorAll('button[data-w]').forEach(function(b){b.onclick=function(){st.w=b.dataset.w;st.ws={};var y=window.scrollY;activityPage();window.scrollTo(0,y)}});
  document.querySelectorAll('button[data-sw]').forEach(function(b){b.onclick=function(e){e.preventDefault();e.stopPropagation();var x=b.dataset.sw.split('|');st.ws[x[0]]=x[1];var y=window.scrollY;activityPage();window.scrollTo(0,y)}});
- document.querySelectorAll('a[data-more]').forEach(function(x){x.onclick=function(e){e.preventDefault();var id=x.dataset.more;st.more[id]=!st.more[id];var y=window.scrollY;activityPage();window.scrollTo(0,y)}});
+ document.querySelectorAll('a[data-more]').forEach(function(x){x.onclick=function(e){e.preventDefault();var id=x.dataset.more,was=st.more[id];st.more[id]=!was;var y=window.scrollY;activityPage();window.scrollTo({top:y,behavior:'instant'});
+  if(was){var a=document.querySelector('a[data-more="'+id+'"]');if(a){var b=a.getBoundingClientRect();if(b.top<0||b.bottom>window.innerHeight)a.scrollIntoView({block:'center',behavior:'instant'})}}}});
  document.querySelectorAll('th[data-st]').forEach(function(h){h.onclick=function(){var id=h.dataset.st,c=+h.dataset.c,cur=st.sort[id]||{c:+h.parentNode.parentNode.parentNode.dataset.kc,d:1};st.sort[id]={c:c,d:cur&&cur.c==c?(cur.d?0:1):+h.dataset.n};var y=window.scrollY;activityPage();window.scrollTo(0,y)}});
  if(!window._agoT)window._agoT=setInterval(tickAgo,20000)}
 function homePage(){
