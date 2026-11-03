@@ -149,3 +149,39 @@ body:not(.cols-all)[data-page=icons] .maintab :is(th,td):nth-child(n+5){display:
 body:not(.cols-all)[data-page=w3c] :is(th,td):is(:nth-child(4),:nth-child(5),:nth-child(8)){display:none}
 body:not(.cols-all)[data-page=activity] table.srt :is(.c-lvl,.c-w,.c-l,.c-g,.c-pd,.c-p):not(.key){display:none}
 }
+/* Statistics (2026-11-03): sticker cards, scan calendar, charts - the calendar look after codex-resets.com */
+.lead{color:var(--dim);max-width:760px}
+.stk{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin:16px 0 10px}
+@media(max-width:700px){.stk{grid-template-columns:repeat(2,1fr);gap:12px}.sk{padding:8px 10px 10px}.sk b{font-size:21px}.sk b.sm{font-size:14px;line-height:1.9}}
+.sk{border:2px solid var(--ink);border-radius:12px;padding:10px 14px 12px;color:#1a1409;box-shadow:3px 4px 0 rgba(0,0,0,.55)}
+.sk span{display:block;font:600 11px/1.3 ui-monospace,"Cascadia Code",Consolas,monospace;letter-spacing:.06em;text-transform:uppercase;opacity:.8}
+.sk b{display:block;font:800 26px/1.25 ui-monospace,"Cascadia Code",Consolas,monospace;margin-top:4px}.sk b.sm{font-size:18px;line-height:1.75}
+.sk.y{background:#d9a521;transform:rotate(-1deg)}.sk.p{background:#d98ca6;transform:rotate(.8deg)}
+.sk.b{background:#62acd6;transform:rotate(-.6deg)}.sk.g{background:#7cc47f;transform:rotate(.9deg)}
+h2.hl{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px}
+.hleg{display:inline-flex;flex-wrap:wrap;gap:4px 14px;font:400 12px ui-monospace,Consolas,monospace;color:var(--dim)}
+.hleg i.hc{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:6px}
+.sgw{overflow-x:auto;background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:10px 14px 12px}
+.sg{display:grid;gap:4px;width:max-content;grid-template-rows:30px;grid-auto-rows:22px;align-items:end}
+.sgm{font:600 12px/22px ui-monospace,Consolas,monospace;color:var(--dim);padding-right:10px;white-space:nowrap;position:sticky;left:0;background:var(--panel);z-index:1}
+.sgm.sgt{color:var(--ink)}
+.sgd{display:flex;flex-direction:column;align-items:center;font:400 11px/14px ui-monospace,Consolas,monospace;color:var(--dim)}
+.sgd i{font-style:normal;color:var(--ink);white-space:nowrap}.sgd.now{color:var(--gold);font-weight:700}
+.hc{display:block;width:22px;height:22px;border-radius:6px;background:#3a3128}
+.hc.c1{background:#e5603a}.hc.c2{background:linear-gradient(135deg,#e5603a 50%,#f0a477 50%)}
+.hc.now{box-shadow:inset 0 0 0 2px var(--gold)}.hc.fut{background:transparent;border:1.5px dashed #4f4333}
+.hc.sum{font:700 11px/22px ui-monospace,Consolas,monospace;text-align:center;color:var(--dim)}
+.hc.sum.full{background:#7cc47f;color:#1a1409}.hc.sum.part{background:#f0a477;color:#1a1409}.hc.sum.now{color:var(--gold)}
+.hc[data-tip]{cursor:pointer}.hc:focus{outline:2px solid var(--ink);outline-offset:1px}
+.chart{background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:8px 6px 6px;margin:8px 0}
+svg.ch{display:block;max-width:100%}svg.ch text{fill:var(--dim);font:11px ui-monospace,Consolas,monospace}
+svg.ch .gl{stroke:var(--line);stroke-width:1}svg.ch .gl.z{stroke:var(--dim)}svg.ch .gd{stroke:#2c2419;stroke-width:1}
+svg.ch .hit{cursor:pointer}svg.ch .hit:focus{outline:none}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.chips button,.chips span{display:inline-flex;align-items:center;gap:6px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:3px 10px;font:12px ui-monospace,Consolas,monospace;min-height:0;width:auto}
+.chips button{cursor:pointer}.chips i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.chips button.off{opacity:.38}.chips button.sw.on{background:var(--gold);color:#1a1409;border-color:var(--gold)}
+.chips.leg span{background:none;border:0;padding:2px 6px}
+.tip{position:absolute;z-index:50;max-width:340px;background:var(--ink);color:var(--bg);font:12px/1.45 ui-monospace,Consolas,monospace;padding:9px 11px;border-radius:8px;white-space:pre-line;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.5)}
+.tip[hidden]{display:none}
+table.trend td:first-child{white-space:normal}

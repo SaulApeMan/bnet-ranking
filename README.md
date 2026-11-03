@@ -4,8 +4,9 @@ Live site: https://saulapeman.com/bnet-ranking/
 
 A small static website (plain HTML, CSS and JavaScript; no backend, no forms, no external scripts) that shows the
 Warcraft III in-game ladder: rankings per mode with filters (race, icon, name) and sorting, records per race
-(including perfect records without a loss), and activity between scans.
-The site is available in Polish, English, Chinese (Simplified) and German. Open `index.html` or serve the folder
+(including perfect records without a loss), activity between scans, and statistics (which modes got a new complete
+scan on the site each day, games per day, MMR of the whole player pool).
+The site is available in English, Chinese (Simplified), Korean, Polish and German. Open `index.html` or serve the folder
 with any static host (GitHub Pages works out of the box).
 
 ## Data
@@ -14,7 +15,7 @@ wins, losses, icon. Provided as is, without warranty of accuracy (values are rea
 may be wrong). The data are public ranking data from the game.
 
 ## Content
-- `*.html` - pages (index, ranking, records, icons, w3champions, activity, about)
+- `*.html` - pages (index, ranking, records, icons, w3champions, activity, statistics, about)
 - `assets/` - style, script and translations (`i18n.js`)
 - `data/site-data.js` - the data
 - `icons/` - player icons
