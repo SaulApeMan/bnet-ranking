@@ -56,7 +56,8 @@ function rankingPage(){
  o+='<label>'+T('Min. gier','Min. games')+' <input id="fg" type="number" min="0" value="'+st.min+'" style="width:80px"></label></div>';
  var KN=knownMap(m),MV=null;
  if(st.sort=='rank'&&m.moves){MV={};m.moves.r.forEach(function(x){MV[x[0]]=x[1]})}   // Saul 03.11: change of place, top 100, ladder-rank order only
- function mvc(r){if(!MV)return '';var p=r[0]<=100?MV[r[0]]:undefined;if(p===undefined)return '<i class="mv"></i>';
+ function mvc(r){if(!MV)return '';if(r[0]>100)return '<i class="mv"></i>';var p=MV[r[0]];
+  if(p===undefined)return '<i class="mv un" title="'+esc(T('brak pary z poprzednim skanem - poprzednie miejsce nieznane','no match with the previous scan - previous place unknown'))+'">?</i>';
   if(p===0)return '<i class="mv nw" title="'+esc(T('nowy w rankingu','new on the ladder'))+'">'+T('NOWY','NEW')+'</i>';
   var d=p-r[0],t=' title="'+esc(T('poprzednio #','previously #')+p+' · '+T('skan ','scan ')+sdd(m.moves.from))+'"';
   return d>0?'<i class="mv up"'+t+'>▲'+d+'</i>':d<0?'<i class="mv dn"'+t+'>▼'+(-d)+'</i>':'<i class="mv eq"'+t+'>–</i>'}
@@ -489,13 +490,14 @@ function sRunTip(S,m,r,at){var s=S.scans.filter(function(x){return x[0]==m&&x[1]
  return T('skan ','scan ')+sdd(r)+' · '+T('na stronie od ','on the site since ')+sdm(at)+(s?'\n'+(s[6]&&s[7]?shm(s[6])+'–'+shm(s[7])+' ('+sdur(s[7]-s[6])+') · ':'')+
   snf(s[3])+' '+T('wierszy','rows')+(s[5]!=null?' · '+T('BattleTagi','BattleTags')+' '+s[5]+'%':''):'')}
 function statsGrid(S,K){
- var n=S.modes.length,t=K.today,days=K.days,o='<div class="sgw"><div class="sg" style="grid-template-columns:auto repeat('+days.length+',22px)"><span class="sgm"></span>';
+ var n=S.modes.length,t=K.today,days=K.days,o='<div class="sgw"><div class="sg" style="grid-template-columns:auto repeat('+days.length+',44px)"><span class="sgm"></span>';
  days.forEach(function(d,i){var x=sdate(d),mo=(i==0||x.getDate()==1)?x.toLocaleDateString(locFor(),{month:'short'}):'';
   o+='<span class="sgd'+(d==t?' now':'')+'"><i>'+(mo?esc(mo):'&nbsp;')+'</i>'+x.getDate()+'</span>'});
  S.modes.forEach(function(m){o+='<span class="sgm">'+esc(sml(m))+'</span>';
   days.forEach(function(d){var rs=Object.keys(K.P[m]||{}).filter(function(x){return x.slice(0,10)==d}).sort(),cls=rs.length>1?'c2':rs.length?'c1':d>t?'fut':d==t?'now':'no';
+   var at=rs.length?Math.min.apply(null,rs.map(function(r){return K.P[m][r]})):0,hh=at?(function(x){return sp2(x.getHours())+':'+sp2(x.getMinutes())})(new Date(at*1000)):'';
    o+='<span class="hc '+cls+'"'+stip(sml(m)+' · '+sdayl(d)+'\n'+(rs.length?rs.map(function(r){return sRunTip(S,m,r,K.P[m][r])}).join('\n'):
-    d>t?T('jeszcze przed nami','still ahead'):d==t?T('dziś jeszcze nic nowego na stronie','nothing new on the site yet today'):T('brak nowego pełnego skanu na stronie','no new complete scan on the site')))+'></span>'})});
+    d>t?T('jeszcze przed nami','still ahead'):d==t?T('dziś jeszcze nic nowego na stronie','nothing new on the site yet today'):T('brak nowego pełnego skanu na stronie','no new complete scan on the site')))+'>'+hh+'</span>'})});
  o+='<span class="sgm sgt">'+T('Wszystkie tryby','All modes')+'</span>';
  days.forEach(function(d){var k=K.cnt[d]||0,on=S.modes.filter(function(m){return Object.keys(K.P[m]||{}).some(function(x){return x.slice(0,10)==d})}),
    off=S.modes.filter(function(m){return on.indexOf(m)<0}),cls=k==n?'full':k?'part':d>t?'fut':d==t?'now':'no';
@@ -545,7 +547,7 @@ function gpdDraw(S,st){
  w3.forEach(function(m){var p='',prev=null;S.w3c[m].forEach(function(x){var a=sutc(x[0]),b=a+86400;if(Math.min(b,x1)-Math.max(a,x0)<43200)return;a=Math.max(a,x0);b=Math.min(b,x1);
    var v=x[1]*(st.norm?SNORM[m]:1),y=Y(v).toFixed(1);p+=(prev!==null&&Math.abs(prev-a)<1?'L':'M')+X(a).toFixed(1)+','+y+'L'+X(b).toFixed(1)+','+y;prev=b;
    hits+='<rect class="hit" x="'+X(a).toFixed(1)+'" y="'+(Y(v)-6).toFixed(1)+'" width="'+Math.max(3,X(b)-X(a)).toFixed(1)+'" height="12" fill="transparent"'+
-    stip('W3Champions · '+(m=='all'?T('wszystkie tryby','all modes'):sml(m))+' · '+sdayl(x[0])+' (UTC)\n'+snf(x[1])+' '+T('gier','games')+(st.norm?' · '+T('po normalizacji: ','normalized: ')+snf(v):''))+'/>'});
+    stip('W3Champions · '+(m=='all'?T('melee razem','melee total'):sml(m))+' · '+sdayl(x[0])+' (UTC)\n'+snf(x[1])+' '+T('gier','games')+(st.norm?' · '+T('po normalizacji: ','normalized: ')+snf(v):''))+'/>'});
   if(p)dash+='<path d="'+p+'" fill="none" stroke="'+W3C_GOLD+'" stroke-width="'+(m=='all'?2.4:1.6)+'" stroke-dasharray="5 4" opacity=".95"/>'});
  ms.forEach(function(m){var c=SMC[m],p='',prev=null;(S.gpd[m]||[]).slice().sort(function(a,b){return a[2]-b[2]}).forEach(function(w){var v=rate(m,w),a=X(w[2]),b=X(w[3]),y=Y(v);
    p+=(prev!==null&&Math.abs(prev-w[2])<120?'L':'M')+a.toFixed(1)+','+y.toFixed(1)+'L'+b.toFixed(1)+','+y.toFixed(1);prev=w[3];
@@ -564,8 +566,31 @@ function gpdDraw(S,st){
  if(aD)lines+='<path d="'+aD+'" fill="none" stroke="'+SMC.all+'" stroke-width="3.2" stroke-dasharray="1 6" stroke-linecap="round"/>';
  el.innerHTML='<svg class="ch" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="'+esc(T('Gry dziennie','Games per day'))+'">'+F.svg+
   saxes(W,H,M,T('Data','Date'),T('Gry dziennie','Games per day')+(st.norm?' ('+T('znormalizowane','normalized')+')':''))+fills+dash+lines+hits+'</svg>'}
-function poolCtl(S,st){                             // Saul 03.11: one simple chart per mode (no views, no table)
- return '<div class="chips">'+S.modes.filter(function(m){return (S.pool[m]||[]).length}).map(function(m){return '<button type="button" class="sw'+(m==st.pm?' on':'')+'" data-pm="'+esc(m)+'">'+esc(sml(m))+'</button>'}).join('')+'</div>'}
+function poolCmpDraw(S,st,el){                       // Saul 03.11: modes side by side (latest complete scan of each) - lowest..highest line, middle 80 % bar, mean, median
+ var ms=S.modes.filter(function(m){return (S.pool[m]||[]).length}),W=Math.max(300,el.clientWidth-12),H=Math.round(Math.max(270,Math.min(370,W*.36+40))),M={l:70,r:12,t:12,b:54},ym=0,s='',hits='';
+ ms.forEach(function(m){var R=S.pool[m];ym=Math.max(ym,R[R.length-1][13])});
+ var yt=snice(0,ym||1),Y=function(v){return M.t+(yt.hi-v)/(yt.hi-yt.lo)*(H-M.t-M.b)},cw=(W-M.l-M.r)/ms.length,bw=Math.max(10,Math.min(46,cw*.42));
+ yt.t.forEach(function(v){var y=Y(v).toFixed(1);s+='<line class="gl'+(v==0?' z':'')+'" x1="'+M.l+'" x2="'+(W-M.r)+'" y1="'+y+'" y2="'+y+'"/><text x="'+(M.l-6)+'" y="'+(+y+4)+'" text-anchor="end">'+v+'</text>'});
+ ms.forEach(function(m,i){var R=S.pool[m],r=R[R.length-1],cx=M.l+cw*(i+.5),on=m==st.pm,unit=m.indexOf('arranged')>=0?T('drużyn','teams'):T('graczy','players');
+  if(on)s+='<rect x="'+(cx-cw/2+2).toFixed(1)+'" y="'+M.t+'" width="'+(cw-4).toFixed(1)+'" height="'+(H-M.t-M.b)+'" fill="#ffffff" fill-opacity=".04" rx="6"/>';
+  s+='<line x1="'+cx.toFixed(1)+'" x2="'+cx.toFixed(1)+'" y1="'+Y(r[13]).toFixed(1)+'" y2="'+Y(r[12]).toFixed(1)+'" stroke="#a39477" stroke-width="2"/>';
+  s+='<line x1="'+(cx-bw/4).toFixed(1)+'" x2="'+(cx+bw/4).toFixed(1)+'" y1="'+Y(r[13]).toFixed(1)+'" y2="'+Y(r[13]).toFixed(1)+'" stroke="#e5603a" stroke-width="3"/>';
+  s+='<line x1="'+(cx-bw/4).toFixed(1)+'" x2="'+(cx+bw/4).toFixed(1)+'" y1="'+Y(r[12]).toFixed(1)+'" y2="'+Y(r[12]).toFixed(1)+'" stroke="#7fc4ff" stroke-width="3"/>';
+  s+='<rect x="'+(cx-bw/2).toFixed(1)+'" y="'+Y(r[8]).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(1,Y(r[4])-Y(r[8])).toFixed(1)+'" fill="#d9a521" fill-opacity=".35" stroke="#d9a521" stroke-opacity=".7" rx="3"/>';
+  s+='<line x1="'+(cx-bw/2).toFixed(1)+'" x2="'+(cx+bw/2).toFixed(1)+'" y1="'+Y(r[6]).toFixed(1)+'" y2="'+Y(r[6]).toFixed(1)+'" stroke="#e8dcc2" stroke-width="2.2"/>';
+  s+='<circle cx="'+cx.toFixed(1)+'" cy="'+Y(r[3]).toFixed(1)+'" r="4.2" fill="#d9a521" stroke="#1a1409" stroke-width="1.2"/>';
+  var lb=sml(m).split(' ');                          // 2v2 AT -> two lines, so 8 labels fit a phone
+  s+='<text x="'+cx.toFixed(1)+'" y="'+(H-M.b+16)+'" text-anchor="middle"'+(on?' style="fill:var(--gold);font-weight:700"':'')+'>'+esc(lb[0])+(lb[1]?'<tspan x="'+cx.toFixed(1)+'" dy="12">'+esc(lb[1])+'</tspan>':'')+'</text>';
+  hits+='<rect class="hit" x="'+(cx-cw/2).toFixed(1)+'" y="'+M.t+'" width="'+cw.toFixed(1)+'" height="'+(H-M.t-M.b)+'" fill="transparent"'+stip(spTip(m,r,unit))+'/>'});
+ el.innerHTML='<svg class="ch" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="'+esc(T('Porównanie trybów','Modes compared'))+'">'+s+
+  saxes(W,H,M,T('Tryb','Mode'),'MMR')+hits+'</svg>'+
+  '<div class="chips leg"><span><i style="background:#e5603a"></i>'+T('najwyższe MMR','highest MMR')+'</span><span><i style="background:#d9a521"></i>'+T('średni MMR','mean MMR')+
+  '</span><span><i style="background:#e8dcc2"></i>'+T('mediana MMR','median MMR')+'</span><span><i style="background:#7fc4ff"></i>'+T('najniższe MMR','lowest MMR')+
+  '</span><span><i style="background:rgba(217,165,33,.45)"></i>'+T('środkowe 80% rankingu','middle 80% of the ladder')+'</span></div>'+
+  '<p class="dim small">'+T('Ostatni pełny skan każdego trybu. W trybach AT jeden wiersz to drużyna.','The latest complete scan of every mode. In AT modes a row is a team.')+'</p>'}
+function poolCtl(S,st){                             // Saul 03.11: one simple chart per mode, or the modes compared (no table)
+ return '<div class="chips">'+[['time',T('W czasie','Over time')],['cmp',T('Porównanie trybów','Modes compared')]].map(function(v){return '<button type="button" class="sw'+(v[0]==st.pc?' on':'')+'" data-pc="'+v[0]+'">'+v[1]+'</button>'}).join('')+'</div>'+
+  '<div class="chips">'+S.modes.filter(function(m){return (S.pool[m]||[]).length}).map(function(m){return '<button type="button" class="sw'+(m==st.pm?' on':'')+'" data-pm="'+esc(m)+'">'+esc(sml(m))+'</button>'}).join('')+'</div>'}
 function spTip(m,r,unit){return sml(m)+' · '+T('skan ','scan ')+sdd(r[0])+'\n'+
  T('najwyższe MMR','highest MMR')+' '+snf(r[13])+'\n'+T('średni MMR','mean MMR')+' '+snf(r[3],1)+'\n'+T('mediana MMR','median MMR')+' '+snf(r[6])+'\n'+
  T('najniższe MMR','lowest MMR')+' '+snf(r[12])+'\n'+T('środkowe 80% rankingu','middle 80% of the ladder')+': '+snf(r[4])+' – '+snf(r[8])+'\n'+snf(r[2])+' '+unit}
@@ -579,6 +604,7 @@ function poolDraw(S,st){                            // pool row: [run,t,n,mean,p
   '<div class="card"><b>'+snf(l[6])+'</b><span>'+T('mediana MMR','median MMR')+' · '+ssg(l[6]-f[6])+'</span></div>'+
   '<div class="card"><b>'+snf(l[2])+'</b><span>'+unit+' '+T('w rankingu','on the ladder')+' · '+ssg(l[2]-f[2])+'</span></div>'+
   '<div class="card"><b>'+snf(l[11]/1e6,2)+' '+T('mln','M')+'</b><span>'+T('suma MMR','total MMR')+' · '+ssg((l[11]-f[11])/1e6,2)+' '+T('mln','M')+'</span></div></div>';
+ if(st.pc=='cmp')return poolCmpDraw(S,st,el);
  var W=Math.max(300,el.clientWidth-12),H=Math.round(Math.max(250,Math.min(350,W*.36+20))),M={l:70,r:12,t:12,b:42},ym=0;
  R.forEach(function(r){ym=Math.max(ym,r[13])});
  var a0=new Date(f[1]*1000),a1=new Date(l[1]*1000);a0.setHours(0,0,0,0);a1=new Date(a1.getFullYear(),a1.getMonth(),a1.getDate()+1);
@@ -646,7 +672,7 @@ function scanTable(S,st,K){
 function statsDraw(S,st){gpdDraw(S,st);poolDraw(S,st);distDraw(S,st)}
 function statsPage(){
  var S=D.stats,root=document.getElementById('app');if(!S){root.innerHTML='';return}
- var st=window._st=window._st||{gm:{},norm:false,w3c:true,pm:'1v1',pv:'delta',all:false,dm:'1v1',dv:'now',my:''},K=strack(S,Math.floor(((root.clientWidth||900)-150)/26));
+ var st=window._st=window._st||{gm:{},norm:false,w3c:true,pm:'1v1',pv:'delta',pc:'time',all:false,dm:'1v1',dv:'now',my:''},K=strack(S,Math.floor(((root.clientWidth||900)-150)/48));
  S.modes.forEach(function(m){if(!(m in st.gm))st.gm[m]=true});if(!('all' in st.gm))st.gm.all=true;
  if(!(S.pool[st.pm]||[]).length)st.pm=S.modes.filter(function(m){return (S.pool[m]||[]).length})[0]||'1v1';
  if(!(S.hist||{})[st.dm])st.dm=S.modes.filter(function(m){return (S.hist||{})[m]})[0]||'1v1';
@@ -654,7 +680,7 @@ function statsPage(){
  o+='<h2>'+T('Gry dziennie','Games per day')+'</h2>'+gpdCtl(S,st)+'<div class="chart" id="gpd"></div><p class="dim small">'+
   T('Linia ciągła: gry w rankingu Battle.net między dwoma kolejnymi skanami trybu, podzielone przez czas między skanami (liczone z graczy obecnych w obu skanach). Linia przerywana: gry dziennie na W3Champions (dni UTC). Znormalizowane, jak na W3Champions: gry 2v2 i FFA liczone podwójnie, 3v3 potrójnie, 4v4 poczwórnie (AT tak samo), żeby porównać popularność trybów.',
    'Solid line: Battle.net ladder games between two consecutive scans of a mode, divided by the time between the scans (counted from players present in both scans). Dashed line: games per day on W3Champions (UTC days). Normalized, as on W3Champions: 2v2 and FFA games count twice, 3v3 three times, 4v4 four times (AT the same), to compare how popular the modes are.')+'</p>'+
-  '<p class="dim small">'+T('Wszystkie (niebieska): suma 8 trybów Battle.net, każda gra liczona raz - tryby to osobne kolejki (gry AT nie wchodzą do rankingu RT). Część kropkowana: któryś tryb nie miał w tym czasie okna między skanami, więc wzięte jest jego najbliższe zmierzone tempo. W3Champions (złota, przerywana): wszystkie jego tryby, bez normalizacji.','All (blue): the 8 Battle.net modes summed, every game counted once - the modes are separate queues (AT games do not count on the RT ladder). Dotted part: some mode had no window between scans at that time, so its nearest measured rate is used. W3Champions (gold, dashed): all its modes, without normalization.')+'</p>';
+  '<p class="dim small">'+T('Wszystkie (niebieska): suma 8 trybów Battle.net, każda gra liczona raz - tryby to osobne kolejki (gry AT nie wchodzą do rankingu RT). Część kropkowana: któryś tryb nie miał w tym czasie okna między skanami, więc wzięte jest jego najbliższe zmierzone tempo. W3Champions (złota, przerywana): jego tryby melee razem (1v1, 2v2, 4v4, FFA), bez normalizacji i bez gier na mapach własnych. W3Champions nie ma trybów AT, a w 2v2 i FFA gra się tam bardzo rzadko.','All (blue): the 8 Battle.net modes summed, every game counted once - the modes are separate queues (AT games do not count on the RT ladder). Dotted part: some mode had no window between scans at that time, so its nearest measured rate is used. W3Champions (gold, dashed): its melee modes together (1v1, 2v2, 4v4, FFA), without normalization and without custom-map games. W3Champions has no AT modes, and 2v2 and FFA are rarely played there.')+'</p>';
  o+='<h2>'+T('Rozkład MMR','MMR distribution')+'</h2>'+distCtl(S,st)+'<div class="chart" id="dist"></div>';     // Saul 03.11: under Games per day
  o+='<h2>'+T('MMR całej puli graczy','MMR of the whole player pool')+'</h2>'+poolCtl(S,st)+'<div id="poolc"></div><div class="chart" id="pool"></div><div id="poolt"></div>';
  o+=scanTable(S,st,K);
@@ -664,6 +690,7 @@ function statsPage(){
  root.querySelectorAll('[data-sw]').forEach(function(b){b.onclick=function(){var k=b.dataset.sw;st[k]=!st[k];b.classList.toggle('on',st[k]);b.setAttribute('aria-pressed',st[k]?'true':'false');gpdDraw(S,st)}});
  root.querySelectorAll('[data-pm]').forEach(function(b){b.onclick=function(){st.pm=b.dataset.pm;root.querySelectorAll('[data-pm]').forEach(function(x){x.classList.toggle('on',x.dataset.pm==st.pm)});poolDraw(S,st)}});
  root.querySelectorAll('[data-pv]').forEach(function(b){b.onclick=function(){st.pv=b.dataset.pv;root.querySelectorAll('[data-pv]').forEach(function(x){x.classList.toggle('on',x.dataset.pv==st.pv)});poolDraw(S,st)}});
+ root.querySelectorAll('[data-pc]').forEach(function(b){b.onclick=function(){st.pc=b.dataset.pc;root.querySelectorAll('[data-pc]').forEach(function(x){x.classList.toggle('on',x.dataset.pc==st.pc)});poolDraw(S,st)}});
  root.querySelectorAll('[data-dm]').forEach(function(b){b.onclick=function(){st.dm=b.dataset.dm;root.querySelectorAll('[data-dm]').forEach(function(x){x.classList.toggle('on',x.dataset.dm==st.dm)});distDraw(S,st)}});
  root.querySelectorAll('[data-dv]').forEach(function(b){b.onclick=function(){st.dv=b.dataset.dv;root.querySelectorAll('[data-dv]').forEach(function(x){x.classList.toggle('on',x.dataset.dv==st.dv)});distDraw(S,st)}});
  var mi=document.getElementById('dmmr');if(mi)mi.oninput=function(){st.my=mi.value.replace(/[^0-9]/g,'').slice(0,5);distDraw(S,st)};
