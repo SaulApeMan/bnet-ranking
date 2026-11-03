@@ -564,59 +564,36 @@ function gpdDraw(S,st){
  if(aD)lines+='<path d="'+aD+'" fill="none" stroke="'+SMC.all+'" stroke-width="3.2" stroke-dasharray="1 6" stroke-linecap="round"/>';
  el.innerHTML='<svg class="ch" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="'+esc(T('Gry dziennie','Games per day'))+'">'+F.svg+
   saxes(W,H,M,T('Data','Date'),T('Gry dziennie','Games per day')+(st.norm?' ('+T('znormalizowane','normalized')+')':''))+fills+dash+lines+hits+'</svg>'}
-function spmName(k){return k=='mean'?T('średnia','mean'):k=='p50'?T('mediana','median'):k=='p99'?T('99. percentyl','99th percentile'):k=='p90'?T('90. percentyl','90th percentile'):
- k=='p75'?T('75. percentyl','75th percentile'):k=='p25'?T('25. percentyl','25th percentile'):k=='p10'?T('10. percentyl','10th percentile'):k=='top'?T('średnia top 100','top 100 mean'):
- k=='sum'?T('suma MMR (mln)','total MMR (M)'):k}
-function sslope(R,i){var n=R.length;if(n<2)return null;var mx=0,my=0;R.forEach(function(r){mx+=r[1];my+=r[i]});mx/=n;my/=n;var a=0,b=0;
- R.forEach(function(r){a+=(r[1]-mx)*(r[i]-my);b+=(r[1]-mx)*(r[1]-mx)});return b?a/b*86400:null}
-function schain(ws,a,b){var by={};ws.forEach(function(w){by[w[0]]=w});var out=[],cur=a;while(cur!=b&&by[cur]&&out.length<200){out.push(by[cur]);cur=by[cur][1]}return cur==b?out:null}
-function poolCtl(S,st){
- return '<div class="chips">'+S.modes.filter(function(m){return (S.pool[m]||[]).length}).map(function(m){return '<button type="button" class="sw'+(m==st.pm?' on':'')+'" data-pm="'+esc(m)+'">'+esc(sml(m))+'</button>'}).join('')+'</div>'+
-  '<div class="chips">'+[['delta',T('Zmiana od pierwszego skanu','Change since the first scan')],['abs',T('Średnia i mediana','Mean and median')],['sum',T('Suma MMR','Total MMR')],['n',T('Liczba w rankingu','Number on the ladder')]]
-   .map(function(v){return '<button type="button" class="sw'+(v[0]==st.pv?' on':'')+'" data-pv="'+v[0]+'">'+v[1]+'</button>'}).join('')+'</div>'}
-function spTip(m,r,f,unit){return sml(m)+' · '+T('skan ','scan ')+sdd(r[0])+'\n'+
- T('średnia','mean')+' '+snf(r[3],1)+' ('+ssg(r[3]-f[3],1)+')\n'+T('mediana','median')+' '+snf(r[6])+' ('+ssg(r[6]-f[6])+')\n'+
- T('99. percentyl','99th percentile')+' '+snf(r[9])+' ('+ssg(r[9]-f[9])+')\n'+T('90. percentyl','90th percentile')+' '+snf(r[8])+' ('+ssg(r[8]-f[8])+')\n'+
- T('10. percentyl','10th percentile')+' '+snf(r[4])+' ('+ssg(r[4]-f[4])+')\n'+snf(r[2])+' '+unit+' · '+T('suma MMR','total MMR')+' '+snf(r[11]/1e6,2)+' '+T('mln','M')}
-function poolDraw(S,st){
+function poolCtl(S,st){                             // Saul 03.11: one simple chart per mode (no views, no table)
+ return '<div class="chips">'+S.modes.filter(function(m){return (S.pool[m]||[]).length}).map(function(m){return '<button type="button" class="sw'+(m==st.pm?' on':'')+'" data-pm="'+esc(m)+'">'+esc(sml(m))+'</button>'}).join('')+'</div>'}
+function spTip(m,r,unit){return sml(m)+' · '+T('skan ','scan ')+sdd(r[0])+'\n'+
+ T('najwyższe MMR','highest MMR')+' '+snf(r[13])+'\n'+T('średni MMR','mean MMR')+' '+snf(r[3],1)+'\n'+T('mediana MMR','median MMR')+' '+snf(r[6])+'\n'+
+ T('najniższe MMR','lowest MMR')+' '+snf(r[12])+'\n'+T('środkowe 80% rankingu','middle 80% of the ladder')+': '+snf(r[4])+' – '+snf(r[8])+'\n'+snf(r[2])+' '+unit}
+function poolDraw(S,st){                            // pool row: [run,t,n,mean,p10,p25,p50,p75,p90,p99,top100,sum,min,max]
  var m=st.pm,R=S.pool[m]||[],el=document.getElementById('pool'),ce=document.getElementById('poolc'),te=document.getElementById('poolt');if(!el)return;
- if(!R.length){el.innerHTML='<p class="dim">'+T('Brak pełnych skanów tego trybu.','No complete scans of this mode.')+'</p>';ce.innerHTML=te.innerHTML='';return}
+ if(te)te.innerHTML='';
+ if(!R.length){el.innerHTML='<p class="dim">'+T('Brak pełnych skanów tego trybu.','No complete scans of this mode.')+'</p>';ce.innerHTML='';return}
  var f=R[0],l=R[R.length-1],unit=m.indexOf('arranged')>=0?T('drużyn','teams'):T('graczy','players');
  ce.innerHTML='<div class="cards act">'+
   '<div class="card"><b>'+snf(l[3],1)+'</b><span>'+T('średni MMR','mean MMR')+' · '+ssg(l[3]-f[3],1)+' '+T('od ','since ')+sdd(f[0])+'</span></div>'+
   '<div class="card"><b>'+snf(l[6])+'</b><span>'+T('mediana MMR','median MMR')+' · '+ssg(l[6]-f[6])+'</span></div>'+
   '<div class="card"><b>'+snf(l[2])+'</b><span>'+unit+' '+T('w rankingu','on the ladder')+' · '+ssg(l[2]-f[2])+'</span></div>'+
   '<div class="card"><b>'+snf(l[11]/1e6,2)+' '+T('mln','M')+'</b><span>'+T('suma MMR','total MMR')+' · '+ssg((l[11]-f[11])/1e6,2)+' '+T('mln','M')+'</span></div></div>';
- var W=Math.max(300,el.clientWidth-12),H=Math.round(Math.max(236,Math.min(336,W*.36+16))),M={l:80,r:12,t:12,b:42},lines=[];
- if(st.pv=='delta')SPM.forEach(function(k){lines.push({k:k[0],c:k[2],w:k[0]=='mean'?3.4:2.2,v:R.map(function(r){return r[k[1]]-f[k[1]]})})});
- else if(st.pv=='abs')lines=[{k:'mean',c:'#d9a521',w:3,v:R.map(function(r){return r[3]})},{k:'p50',c:'#e8dcc2',w:2.4,v:R.map(function(r){return r[6]})}];
- else if(st.pv=='sum')lines=[{k:'sum',c:'#d9a521',w:3,v:R.map(function(r){return r[11]/1e6})}];
- else lines=[{k:'n',c:'#d9a521',w:3,v:R.map(function(r){return r[2]})}];
- var lo=Infinity,hi=-Infinity;lines.forEach(function(q){q.v.forEach(function(v){lo=Math.min(lo,v);hi=Math.max(hi,v)})});if(st.pv=='delta'){lo=Math.min(lo,0);hi=Math.max(hi,0)}
- var pad=(hi-lo)*.1||Math.max(1,Math.abs(hi)*.001),a0=new Date(f[1]*1000),a1=new Date(l[1]*1000);a0.setHours(0,0,0,0);a1=new Date(a1.getFullYear(),a1.getMonth(),a1.getDate()+1);
- var yt=snice(lo-pad,hi+pad),yd=yt.s<1?(yt.s<.1?2:1):0,F=sframe(W,H,M,a0/1000,a1/1000,yt,function(v){return st.pv=='delta'?ssg(v,yd):snf(v,yd)}),s=F.svg,hits='';
- lines.forEach(function(q){var p='';q.v.forEach(function(v,i){p+=(i?'L':'M')+F.X(R[i][1]).toFixed(1)+','+F.Y(v).toFixed(1)});
-  s+='<path d="'+p+'" fill="none" stroke="'+q.c+'" stroke-width="'+q.w+'" stroke-linejoin="round" stroke-linecap="round"/>';
-  q.v.forEach(function(v,i){s+='<circle cx="'+F.X(R[i][1]).toFixed(1)+'" cy="'+F.Y(v).toFixed(1)+'" r="3.4" fill="'+q.c+'"/>'})});
- R.forEach(function(r){var x=F.X(r[1]);hits+='<rect class="hit" x="'+(x-10).toFixed(1)+'" y="'+M.t+'" width="20" height="'+(H-M.t-M.b)+'" fill="transparent"'+stip(spTip(m,r,f,unit))+'/>'});
+ var W=Math.max(300,el.clientWidth-12),H=Math.round(Math.max(250,Math.min(350,W*.36+20))),M={l:70,r:12,t:12,b:42},ym=0;
+ R.forEach(function(r){ym=Math.max(ym,r[13])});
+ var a0=new Date(f[1]*1000),a1=new Date(l[1]*1000);a0.setHours(0,0,0,0);a1=new Date(a1.getFullYear(),a1.getMonth(),a1.getDate()+1);
+ var yt=snice(0,ym||1),F=sframe(W,H,M,a0/1000,a1/1000,yt,function(v){return String(v)}),X=F.X,Y=F.Y,s=F.svg,hits='';
+ var band='M'+R.map(function(r){return X(r[1]).toFixed(1)+','+Y(r[8]).toFixed(1)}).join('L')+'L'+R.slice().reverse().map(function(r){return X(r[1]).toFixed(1)+','+Y(r[4]).toFixed(1)}).join('L')+'Z';
+ s+='<path d="'+band+'" fill="#d9a521" fill-opacity=".12" stroke="none"/>';
+ var L=[['max',13,'#e5603a',2.2,T('najwyższe MMR','highest MMR'),0],['mean',3,'#d9a521',3.4,T('średni MMR','mean MMR'),1],['p50',6,'#e8dcc2',2.2,T('mediana MMR','median MMR'),0],['min',12,'#7fc4ff',2.2,T('najniższe MMR','lowest MMR'),0]];
+ L.forEach(function(q){var p=R.map(function(r,i){return (i?'L':'M')+X(r[1]).toFixed(1)+','+Y(r[q[1]]).toFixed(1)}).join('');
+  s+='<path d="'+p+'" fill="none" stroke="'+q[2]+'" stroke-width="'+q[3]+'" stroke-linejoin="round" stroke-linecap="round"/>';
+  R.forEach(function(r){s+='<circle cx="'+X(r[1]).toFixed(1)+'" cy="'+Y(r[q[1]]).toFixed(1)+'" r="3.2" fill="'+q[2]+'"/>'})});
+ R.forEach(function(r){var x=X(r[1]);hits+='<rect class="hit" x="'+(x-10).toFixed(1)+'" y="'+M.t+'" width="20" height="'+(H-M.t-M.b)+'" fill="transparent"'+stip(spTip(m,r,unit))+'/>'});
  el.innerHTML='<svg class="ch" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="'+esc(T('MMR całej puli graczy','MMR of the whole player pool'))+'">'+s+
-  saxes(W,H,M,T('Data','Date'),st.pv=='delta'?T('Zmiana MMR','MMR change'):st.pv=='abs'?'MMR':st.pv=='sum'?spmName('sum'):unit+' '+T('w rankingu','on the ladder'))+hits+'</svg>'+
-  '<div class="chips leg">'+lines.map(function(q){return '<span><i style="background:'+q.c+'"></i>'+esc(q.k=='n'?unit+' '+T('w rankingu','on the ladder'):spmName(q.k))+(st.pv=='delta'?' '+ssg(q.v[q.v.length-1],q.k=='mean'?1:0):'')+'</span>'}).join('')+'</div>';
- var o='<h3>'+T('Tempo zmian','Rate of change')+'</h3><div class="tw"><table class="trend"><tr><th>'+T('Miara','Measure')+'</th><th class="n">'+sdd(f[0])+'</th><th class="n">'+sdd(l[0])+'</th><th class="n">'+T('Zmiana','Change')+'</th><th class="n">'+T('Na dobę','Per day')+'</th></tr>';
- [['mean',3,1],['p50',6,0],['p99',9,0],['p90',8,0],['p75',7,0],['p25',5,0],['p10',4,0],['top',10,1]].forEach(function(k){var sl=sslope(R,k[1]);
-  o+='<tr><td>'+esc(spmName(k[0]))+'</td><td class="n">'+snf(f[k[1]],k[2])+'</td><td class="n">'+snf(l[k[1]],k[2])+'</td><td class="n">'+ssg(l[k[1]]-f[k[1]],k[2])+'</td><td class="n">'+(sl==null?'–':ssg(sl,Math.abs(sl)<1?2:1))+'</td></tr>'});
- var ss=sslope(R,11),sn=sslope(R,2);
- o+='<tr><td>'+esc(spmName('sum'))+'</td><td class="n">'+snf(f[11]/1e6,2)+'</td><td class="n">'+snf(l[11]/1e6,2)+'</td><td class="n">'+ssg((l[11]-f[11])/1e6,2)+'</td><td class="n">'+(ss==null?'–':ssg(ss/1e6,3))+'</td></tr>';
- o+='<tr><td>'+unit+' '+T('w rankingu','on the ladder')+'</td><td class="n">'+snf(f[2])+'</td><td class="n">'+snf(l[2])+'</td><td class="n">'+ssg(l[2]-f[2])+'</td><td class="n">'+(sn==null?'–':ssg(sn,0))+'</td></tr></table></div>';
- var ch=schain(S.gpd[m]||[],f[0],l[0]);
- if(ch&&ch.length){var dE=0,pdays=0;ch.forEach(function(w){dE+=w[7];pdays+=w[6]*w[4]/24});
-  var dM=l[3]-f[3],eP=dE/l[2],dN=l[2]-f[2],nm_=dN>20?(l[11]-f[11]-dE)/dN:null;
-  o+='<div class="helpbox"><p><b>'+T('Skąd bierze się zmiana średniej','Where the change of the mean comes from')+'</b> ('+sdd(f[0])+' → '+sdd(l[0])+'): '+ssg(dM,1)+' MMR =</p><ul>'+
-   '<li><b>'+ssg(eP,1)+'</b> '+T('— gry graczy obecnych w kolejnych skanach: razem ','— games of players present in consecutive scans: together ')+ssg(dE)+' MMR, '+T('średnio ','on average ')+
-    (pdays?ssg(dE/pdays,2):'–')+' '+T('MMR na gracza na dobę','MMR per player per day')+'</li>'+
-   '<li><b>'+ssg(dM-eP,1)+'</b> '+T('— nowe wpisy i inne zmiany składu rankingu','— new entries and other changes of who is on the ladder')+(nm_!=null?T(' (nowe wpisy mają średnio ok. ',' (new entries average about ')+snf(nm_)+' MMR)':'')+'</li></ul></div>'}
- o+='<p class="dim small">'+T('Na dobę = nachylenie prostej dopasowanej do wszystkich pełnych skanów (metoda najmniejszych kwadratów). Percentyl: np. 90. percentyl to MMR, którego nie przekracza 90% rankingu.','Per day = the slope of a straight line fitted to all complete scans (least squares). Percentile: e.g. the 90th percentile is the MMR that 90% of the ladder does not exceed.')+'</p>';
- te.innerHTML=o}
+  saxes(W,H,M,T('Data','Date'),'MMR')+hits+'</svg>'+
+  '<div class="chips leg">'+L.map(function(q){return '<span><i style="background:'+q[2]+'"></i>'+esc(q[4])+' '+snf(l[q[1]],q[5])+'</span>'}).join('')+
+  '<span><i style="background:rgba(217,165,33,.35)"></i>'+T('środkowe 80% rankingu','middle 80% of the ladder')+' '+snf(l[4])+' – '+snf(l[8])+'</span></div>'}
 function stop(q,x){                                 // % of the ladder with MORE MMR than x (the best = 0), from 1001 quantiles of the latest scan
  if(!q||!q.length)return null;var n=q.length-1;if(x>=q[n])return 0;if(x<q[0])return 100;
  var lo=0,hi=n;while(hi-lo>1){var md=(lo+hi)>>1;if(q[md]<=x)lo=md;else hi=md}
@@ -678,8 +655,8 @@ function statsPage(){
   T('Linia ciągła: gry w rankingu Battle.net między dwoma kolejnymi skanami trybu, podzielone przez czas między skanami (liczone z graczy obecnych w obu skanach). Linia przerywana: gry dziennie na W3Champions (dni UTC). Znormalizowane, jak na W3Champions: gry 2v2 i FFA liczone podwójnie, 3v3 potrójnie, 4v4 poczwórnie (AT tak samo), żeby porównać popularność trybów.',
    'Solid line: Battle.net ladder games between two consecutive scans of a mode, divided by the time between the scans (counted from players present in both scans). Dashed line: games per day on W3Champions (UTC days). Normalized, as on W3Champions: 2v2 and FFA games count twice, 3v3 three times, 4v4 four times (AT the same), to compare how popular the modes are.')+'</p>'+
   '<p class="dim small">'+T('Wszystkie (niebieska): suma 8 trybów Battle.net, każda gra liczona raz - tryby to osobne kolejki (gry AT nie wchodzą do rankingu RT). Część kropkowana: któryś tryb nie miał w tym czasie okna między skanami, więc wzięte jest jego najbliższe zmierzone tempo. W3Champions (złota, przerywana): wszystkie jego tryby, bez normalizacji.','All (blue): the 8 Battle.net modes summed, every game counted once - the modes are separate queues (AT games do not count on the RT ladder). Dotted part: some mode had no window between scans at that time, so its nearest measured rate is used. W3Champions (gold, dashed): all its modes, without normalization.')+'</p>';
+ o+='<h2>'+T('Rozkład MMR','MMR distribution')+'</h2>'+distCtl(S,st)+'<div class="chart" id="dist"></div>';     // Saul 03.11: under Games per day
  o+='<h2>'+T('MMR całej puli graczy','MMR of the whole player pool')+'</h2>'+poolCtl(S,st)+'<div id="poolc"></div><div class="chart" id="pool"></div><div id="poolt"></div>';
- o+='<h3>'+T('Rozkład MMR','MMR distribution')+'</h3>'+distCtl(S,st)+'<div class="chart" id="dist"></div>';
  o+=scanTable(S,st,K);
  root.innerHTML=o;
  statsDraw(S,st);
