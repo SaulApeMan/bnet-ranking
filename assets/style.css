@@ -151,11 +151,15 @@ body:not(.cols-all)[data-page=activity] table.srt :is(.c-lvl,.c-w,.c-l,.c-g,.c-p
 }
 /* Statistics (2026-11-03): sticker cards, scan calendar, charts - the calendar look after codex-resets.com */
 .lead{color:var(--dim);max-width:760px}
+i.mv{display:inline-block;width:2.9em;margin-left:6px;font:700 11px ui-monospace,Consolas,monospace;font-style:normal;text-align:left;vertical-align:1px}
+i.mv.up{color:#6fd16f}i.mv.dn{color:#e5603a}i.mv.eq{color:var(--dim);font-weight:400}i.mv.nw{color:var(--gold);font-size:9px;letter-spacing:.04em}
+p.mvn{margin:4px 0 6px}
 .stk{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin:16px 0 10px}
 @media(max-width:700px){.stk{grid-template-columns:repeat(2,1fr);gap:12px}.sk{padding:8px 10px 10px}.sk b{font-size:21px}.sk b.sm{font-size:14px;line-height:1.9}}
 .sk{border:2px solid var(--ink);border-radius:12px;padding:10px 14px 12px;color:#1a1409;box-shadow:3px 4px 0 rgba(0,0,0,.55)}
 .sk span{display:block;font:600 11px/1.3 ui-monospace,"Cascadia Code",Consolas,monospace;letter-spacing:.06em;text-transform:uppercase;opacity:.8}
 .sk b{display:block;font:800 26px/1.25 ui-monospace,"Cascadia Code",Consolas,monospace;margin-top:4px}.sk b.sm{font-size:18px;line-height:1.75}
+.sk em{display:block;font:600 12px/1.3 ui-monospace,"Cascadia Code",Consolas,monospace;font-style:normal;opacity:.8;margin-top:1px}
 .sk.y{background:#d9a521;transform:rotate(-1deg)}.sk.p{background:#d98ca6;transform:rotate(.8deg)}
 .sk.b{background:#62acd6;transform:rotate(-.6deg)}.sk.g{background:#7cc47f;transform:rotate(.9deg)}
 h2.hl{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px}
@@ -175,6 +179,11 @@ h2.hl{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px}
 .hc[data-tip]{cursor:pointer}.hc:focus{outline:2px solid var(--ink);outline-offset:1px}
 .chart{background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:8px 6px 6px;margin:8px 0}
 svg.ch{display:block;max-width:100%}svg.ch text{fill:var(--dim);font:11px ui-monospace,Consolas,monospace}
+svg.ch text.al{fill:var(--ink);font:600 12px "Segoe UI",system-ui,sans-serif}
+svg.ch .pm{stroke:#b28be0;stroke-width:1;stroke-dasharray:3 3;opacity:.75}svg.ch text.pml{fill:#cfa6f2;font:600 10px ui-monospace,Consolas,monospace}
+svg.ch text.pmy{fill:#7fc4ff;font:700 12px ui-monospace,Consolas,monospace}
+.mymmr{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:8px 0}.mymmr label{font-size:14px}.mymmr input{width:110px}
+#dres{font:600 13px ui-monospace,Consolas,monospace}
 svg.ch .gl{stroke:var(--line);stroke-width:1}svg.ch .gl.z{stroke:var(--dim)}svg.ch .gd{stroke:#2c2419;stroke-width:1}
 svg.ch .hit{cursor:pointer}svg.ch .hit:focus{outline:none}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}

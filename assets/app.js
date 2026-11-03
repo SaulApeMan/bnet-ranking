@@ -54,14 +54,20 @@ function rankingPage(){
  o+='<label>'+T('Sortuj','Sort')+' <select id="fs">'+sopts.map(function(x){return'<option value="'+x[0]+'"'+(x[0]==st.sort?' selected':'')+'>'+x[1]+'</option>'}).join('')+'</select></label>';
  o+='<label><select id="fd"><option value="1"'+(st.dir==1?' selected':'')+'>'+T('rosnąco','ascending')+'</option><option value="-1"'+(st.dir==-1?' selected':'')+'>'+T('malejąco','descending')+'</option></select></label>';
  o+='<label>'+T('Min. gier','Min. games')+' <input id="fg" type="number" min="0" value="'+st.min+'" style="width:80px"></label></div>';
- var KN=knownMap(m);
+ var KN=knownMap(m),MV=null;
+ if(st.sort=='rank'&&m.moves){MV={};m.moves.r.forEach(function(x){MV[x[0]]=x[1]})}   // Saul 03.11: change of place, top 100, ladder-rank order only
+ function mvc(r){if(!MV)return '';var p=r[0]<=100?MV[r[0]]:undefined;if(p===undefined)return '<i class="mv"></i>';
+  if(p===0)return '<i class="mv nw" title="'+esc(T('nowy w rankingu','new on the ladder'))+'">'+T('NOWY','NEW')+'</i>';
+  var d=p-r[0],t=' title="'+esc(T('poprzednio #','previously #')+p+' · '+T('skan ','scan ')+sdd(m.moves.from))+'"';
+  return d>0?'<i class="mv up"'+t+'>▲'+d+'</i>':d<0?'<i class="mv dn"'+t+'>▼'+(-d)+'</i>':'<i class="mv eq"'+t+'>–</i>'}
  var rows=m.top.filter(function(r){var k=KN[r[0]]||[];return(!st.race||r[2]==st.race)&&(!st.icon||r[7]==st.icon)&&(!st.league||r[9]==st.league)
   &&(!st.who||k.some(function(x){return st.who.indexOf(x[1])>=0}))
   &&(!st.q||((r[1]||'')+' '+k.map(function(x){return x[2]}).join(' ')).toLowerCase().indexOf(st.q.toLowerCase())>=0)&&games(r)>=st.min});
  var f=SORTS[st.sort];rows=rows.slice().sort(function(a,b){return(f(a)-f(b))*st.dir||a[0]-b[0]});
  o+='<div class="note">'+T('Skan z ','Scan of ')+esc(m.date)+' · '+m.rows.toLocaleString()+T(' wierszy',' rows')+(m.sample?T(' (próbka: tylko pierwsze strony rankingu)',' (sample: first pages of the ladder only)'):'')+(m.partial?' · <b class="down">'+T('skan niepełny – część rankingu','incomplete scan – part of the ladder only')+'</b>':'')+' · '+T('mediana MMR ','median MMR ')+m.mmr_median+' · <b>'+rows.length.toLocaleString()+'</b> '+T('pasuje do filtrów','match the filters')+'<br><span class="dim">'+T('Miejsce w rankingu gry wynika z poziomu konta, nie z MMR – żeby zobaczyć najsilniejszych graczy, sortuj po MMR.','The in-game ladder rank follows account level, not MMR – sort by MMR to see the strongest players.')+'</span></div>';
+ if(MV)o+='<p class="dim small mvn">'+T('▲▼ zmiana miejsca od poprzedniego skanu (','▲▼ change of place since the previous scan (')+esc(sdd(m.moves.from))+T('), tylko top 100.','), top 100 only.')+'</p>';
  o+='<div class="tw"><table><tr><th class="n">#</th><th>'+T('Gracz','Player')+'</th>'+(Object.keys(D.leagues).length?'<th>'+T('Liga','League')+'</th>':'')+'<th class="n">'+T('Poz.','Lvl')+'</th><th>'+T('Rasa','Race')+'</th><th class="n">MMR</th><th class="n">'+T('Wygr.','Wins')+'</th><th class="n">'+T('Przegr.','Losses')+'</th><th class="n">'+T('Gry','Games')+'</th><th class="n">%</th></tr>';
- rows.slice(0,st.shown).forEach(function(r){var g=games(r);o+='<tr><td class="n">'+r[0]+'</td><td>'+icon(r[7])+nm(r[1],r[8],r[0])+qa(r)+knownBadge(KN[r[0]],r[1])+'</td>'+(Object.keys(D.leagues).length?'<td>'+lgcell(r[9])+'</td>':'')+'<td class="n">'+(r[6]==null?'<span class="dim">–</span>':r[6])+'</td><td>'+rc(r[2])+'</td><td class="n">'+qv(r[3])+'</td><td class="n">'+qv(r[4])+'</td><td class="n">'+qv(r[5])+'</td><td class="n">'+qv(g)+'</td><td class="n">'+(g==null?qv(null):(g?Math.round(r[4]/g*100):0))+'</td></tr>'});
+ rows.slice(0,st.shown).forEach(function(r){var g=games(r);o+='<tr><td class="n">'+r[0]+mvc(r)+'</td><td>'+icon(r[7])+nm(r[1],r[8],r[0])+qa(r)+knownBadge(KN[r[0]],r[1])+'</td>'+(Object.keys(D.leagues).length?'<td>'+lgcell(r[9])+'</td>':'')+'<td class="n">'+(r[6]==null?'<span class="dim">–</span>':r[6])+'</td><td>'+rc(r[2])+'</td><td class="n">'+qv(r[3])+'</td><td class="n">'+qv(r[4])+'</td><td class="n">'+qv(r[5])+'</td><td class="n">'+qv(g)+'</td><td class="n">'+(g==null?qv(null):(g?Math.round(r[4]/g*100):0))+'</td></tr>'});
  o+='</table></div><p class="dim">'+T('Pokazano ','Showing ')+Math.min(st.shown,rows.length)+T(' z ',' of ')+rows.length.toLocaleString()+(rows.length>st.shown?' · <a href="#" id="more">'+T('pokaż 200 więcej','show 200 more')+'</a>':'')+'</p>';
  var at=st.m.indexOf('arranged')>=0;                     // arranged teams have no race: one histogram only
  o+='<h2>'+T('Rozkład MMR','MMR distribution')+'</h2><div class="'+(at?'':'grid2')+'"><div id="h1" class="card"></div>'+(at?'':'<div id="h2" class="card"></div>')+'</div>';
@@ -428,11 +434,12 @@ function activityPage(){
  if(!window._agoT)window._agoT=setInterval(tickAgo,20000)}
 // ---------------------------------------------------------------- Statistics (Saul 2026-11-03): scans on the site per mode and day (calendar
 // after codex-resets.com), games per day between scans (after the W3Champions statistics page), MMR of the whole player pool
-var SMC={'1v1':'#e8833a','2v2':'#4c8bf5','3v3':'#3fb37f','4v4':'#a064d6','FFA':'#d9c85a','2v2-arranged':'#7fc4ff','3v3-arranged':'#8fdc8f','4v4-arranged':'#e08fd8'};
+var SMC={'all':'#2f9bff','1v1':'#e8833a','2v2':'#e8679a','3v3':'#3fb37f','4v4':'#a064d6','FFA':'#bdb4a2','2v2-arranged':'#f3a6c6','3v3-arranged':'#8fdc8f','4v4-arranged':'#cfa6f2'};
+var W3C_GOLD='#d9a521';                              // Saul 03.11: W3Champions lines gold, the Battle.net total blue
 var SNORM={'1v1':1,'2v2':2,'3v3':3,'4v4':4,'FFA':2,'2v2-arranged':2,'3v3-arranged':3,'4v4-arranged':4};   // players in a game / 2, as on W3Champions
 var SPM=[['p99',9,'#e5603a'],['p90',8,'#f0a477'],['mean',3,'#d9a521'],['p50',6,'#e8dcc2'],['p10',4,'#7fc4ff']];   // pool row: [run,t,n,mean,p10,p25,p50,p75,p90,p99,top100,sum]
 function sml(m){return String(m).replace('-arranged',' AT')}
-function sdd(x){return x?x.slice(8,10)+'.'+x.slice(5,7)+x.slice(10):''}
+function sdd(x){return x?sdate(x).toLocaleDateString(locFor(),{day:'numeric',month:'short'})+(x.length>10?' #'+(x.charCodeAt(10)-96):''):''}
 function snf(v,d){return v==null||isNaN(v)?'–':Number(v).toLocaleString(locFor(),{minimumFractionDigits:d||0,maximumFractionDigits:d||0})}
 function ssg(v,d){if(v==null||isNaN(v))return '–';var k=Math.pow(10,d||0),r=Math.round(v*k)/k;return (r>0?'+':r<0?'−':'±')+snf(Math.abs(r),d)}
 function sp2(n){return (n<10?'0':'')+n}
@@ -470,12 +477,14 @@ function strack(S,cols){
  days.forEach(function(d){var k=0;S.modes.forEach(function(m){if(Object.keys(P[m]||{}).some(function(x){return x.slice(0,10)==d}))k++});
   cnt[d]=k;if(d<=t){seen++;cells+=k;if(k==S.modes.length)full++;if(d<t||k==S.modes.length)el++}});
  return {P:P,days:days,cnt:cnt,full:full,runs:runs,last:last,el:el,cells:cells,seen:seen,today:t}}
-function statsCards(S,K){var n=S.modes.length;
+function statsCards(S,K){                          // Saul 03.11: latest new scan (mode + when) -> today -> modes per day -> days with every mode
+ var n=S.modes.length,lt=null;
+ S.scans.forEach(function(x){if(!x[4])return;var t=x[7]||sdate(x[1]).getTime()/1000+43200;if(!lt||t>lt[0])lt=[t,x]});
  return '<div class="stk">'+
-  '<div class="sk y"><span>'+T('Dni ze wszystkimi trybami','Days with every mode')+'</span><b>'+(K.el?K.full+' / '+K.el:'–')+'</b></div>'+
-  '<div class="sk p"><span>'+T('Średnio trybów na dzień','Modes per day on average')+'</span><b>'+snf(K.cells/Math.max(1,K.seen),1)+' / '+n+'</b></div>'+
-  '<div class="sk b"><span>'+T('Skany na stronie','Scans on the site')+'</span><b>'+K.runs+'</b></div>'+
-  '<div class="sk g"><span>'+T('Ostatni nowy skan na stronie','Latest new scan on the site')+'</span><b class="sm">'+(K.last?esc(sdm(K.last)):'–')+'</b></div></div>'}
+  '<div class="sk y"><span>'+T('Ostatni nowy skan','Latest new scan')+'</span>'+(lt?'<b>'+esc(sml(lt[1][0]))+'</b><em>'+esc(lt[1][7]?sdm(lt[1][7]):sdayl(lt[1][1]))+'</em>':'<b>–</b>')+'</div>'+
+  '<div class="sk p"><span>'+T('Dziś','Today')+'</span><b>'+(K.cnt[K.today]||0)+' / '+n+'</b></div>'+
+  '<div class="sk b"><span>'+T('Średnio trybów na dzień','Modes per day on average')+'</span><b>'+snf(K.cells/Math.max(1,K.seen),1)+' / '+n+'</b></div>'+
+  '<div class="sk g"><span>'+T('Dni ze wszystkimi trybami','Days with every mode')+'</span><b>'+(K.el?K.full+' / '+K.el:'–')+'</b></div></div>'}
 function sRunTip(S,m,r,at){var s=S.scans.filter(function(x){return x[0]==m&&x[1]==r})[0];
  return T('skan ','scan ')+sdd(r)+' · '+T('na stronie od ','on the site since ')+sdm(at)+(s?'\n'+(s[6]&&s[7]?shm(s[6])+'–'+shm(s[7])+' ('+sdur(s[7]-s[6])+') · ':'')+
   snf(s[3])+' '+T('wierszy','rows')+(s[5]!=null?' · '+T('BattleTagi','BattleTags')+' '+s[5]+'%':''):'')}
@@ -494,36 +503,50 @@ function statsGrid(S,K){
    (off.length?'\n'+T('brak: ','missing: ')+off.map(sml).join(', '):'')))+'>'+(d>t?'':k)+'</span>'});
  return '<h2 class="hl">'+T('Skany na stronie','Scans on the site')+'<span class="hleg"><span><i class="hc c1"></i>'+T('nowy pełny skan','new complete scan')+'</span><span><i class="hc c2"></i>'+
   T('2 skany jednego dnia','2 scans in one day')+'</span><span><i class="hc no"></i>'+T('brak','none')+'</span><span><i class="hc fut"></i>'+T('przed nami','ahead')+'</span></span></h2>'+o+'</div></div>'}
+function saxes(W,H,M,xl,yl){return '<text class="al" x="'+((M.l+W-M.r)/2).toFixed(1)+'" y="'+(H-5)+'" text-anchor="middle">'+esc(xl)+'</text>'+
+ '<text class="al" transform="translate(14,'+((M.t+H-M.b)/2).toFixed(1)+') rotate(-90)" text-anchor="middle">'+esc(yl)+'</text>'}
 function snice(a,b,n){if(!(b>a))b=a+1;var r=(b-a)/(n||5),p=Math.pow(10,Math.floor(Math.log(r)/Math.LN10)),f=r/p,s=(f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p,lo=Math.floor(a/s)*s,hi=Math.ceil(b/s)*s,t=[];
  for(var v=lo;v<=hi+s/2;v+=s)t.push(Math.round(v*1e6)/1e6);return {lo:lo,hi:hi,s:s,t:t}}
 function sframe(W,H,M,x0,x1,yt,yf){                  // y grid + labels, day lines (local midnights) + day labels
  var X=function(t){return M.l+(t-x0)/(x1-x0)*(W-M.l-M.r)},Y=function(v){return M.t+(yt.hi-v)/(yt.hi-yt.lo)*(H-M.t-M.b)},s='',ds=[];
  yt.t.forEach(function(v){var y=Y(v).toFixed(1);s+='<line class="gl'+(v==0?' z':'')+'" x1="'+M.l+'" x2="'+(W-M.r)+'" y1="'+y+'" y2="'+y+'"/><text x="'+(M.l-6)+'" y="'+(+y+4)+'" text-anchor="end">'+esc(yf(v))+'</text>'});
  var d=new Date(x0*1000);d.setHours(0,0,0,0);while(d.getTime()/1000<x1&&ds.length<400){ds.push(d.getTime()/1000);d=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1)}
- var ev=Math.max(1,Math.ceil(54/((W-M.l-M.r)/Math.max(1,(x1-x0)/86400))));
+ var ev=Math.max(1,Math.ceil(66/((W-M.l-M.r)/Math.max(1,(x1-x0)/86400))));
  ds.forEach(function(t,i){var x=X(t);if(x>M.l+1&&x<W-M.r)s+='<line class="gd" x1="'+x.toFixed(1)+'" x2="'+x.toFixed(1)+'" y1="'+M.t+'" y2="'+(H-M.b)+'"/>';
-  var xc=X(t+43200);if(i%ev==0&&xc>M.l&&xc<W-M.r)s+='<text x="'+xc.toFixed(1)+'" y="'+(H-M.b+16)+'" text-anchor="middle">'+esc(new Date(t*1000).toLocaleDateString(locFor(),{day:'numeric',month:'numeric'}))+'</text>'});
+  var xc=X(t+43200);if(i%ev==0&&xc>M.l&&xc<W-M.r)s+='<text x="'+xc.toFixed(1)+'" y="'+(H-M.b+16)+'" text-anchor="middle">'+esc(new Date(t*1000).toLocaleDateString(locFor(),{day:'numeric',month:'short'}))+'</text>'});
  return {X:X,Y:Y,svg:s}}
+function gpdAll(S,st){                              // the 8 modes summed per stretch between window edges: [[from,to,per day,[modes estimated]]]
+ var ws={},cuts=[],out=[];                          // a mode without a window at that time gets its nearest measured rate (and the stretch is dotted)
+ S.modes.forEach(function(m){ws[m]=(S.gpd[m]||[]).slice().sort(function(a,b){return a[2]-b[2]});ws[m].forEach(function(w){cuts.push(w[2],w[3])})});
+ cuts.sort(function(a,b){return a-b});cuts=cuts.filter(function(v,i){return !i||v-cuts[i-1]>60});
+ for(var i=0;i+1<cuts.length;i++){var a=cuts[i],b=cuts[i+1],mid=(a+b)/2,sum=0,est=[];
+  S.modes.forEach(function(m){var L=ws[m];if(!L.length){est.push(m);return}
+   var w=L.filter(function(x){return x[2]<=mid&&x[3]>=mid})[0];
+   if(!w){w=L.reduce(function(p,x){var d=Math.min(Math.abs(x[2]-mid),Math.abs(x[3]-mid));return !p||d<p[0]?[d,x]:p},null)[1];est.push(m)}
+   sum+=w[5]/(w[4]/24)*(st.norm?SNORM[m]:1)});
+  out.push([a,b,sum,est])}
+ return out}
 function gpdCtl(S,st){
- return '<div class="chips">'+S.modes.filter(function(m){return (S.gpd[m]||[]).length}).map(function(m){return '<button type="button" data-gm="'+esc(m)+'"'+(st.gm[m]?'':' class="off"')+'><i style="background:'+SMC[m]+'"></i>'+esc(sml(m))+'</button>'}).join('')+'</div>'+
+ return '<div class="chips"><button type="button" data-gm="all"'+(st.gm.all?'':' class="off"')+'><i style="background:'+SMC.all+'"></i>'+T('Wszystkie','All')+'</button>'+S.modes.filter(function(m){return (S.gpd[m]||[]).length}).map(function(m){return '<button type="button" data-gm="'+esc(m)+'"'+(st.gm[m]?'':' class="off"')+'><i style="background:'+SMC[m]+'"></i>'+esc(sml(m))+'</button>'}).join('')+'</div>'+
   '<div class="chips"><button type="button" class="sw'+(st.norm?' on':'')+'" data-sw="norm" aria-pressed="'+(st.norm?'true':'false')+'">'+T('Znormalizowane','Normalized')+'</button>'+
   (Object.keys(S.w3c||{}).length?'<button type="button" class="sw'+(st.w3c?' on':'')+'" data-sw="w3c" aria-pressed="'+(st.w3c?'true':'false')+'">W3Champions</button>':'')+'</div>'}
 function gpdDraw(S,st){
  var el=document.getElementById('gpd');if(!el)return;
- var W=Math.max(300,el.clientWidth-12),H=Math.round(Math.max(220,Math.min(330,W*.38))),M={l:58,r:10,t:10,b:24},x0=Infinity,x1=-Infinity,ym=0;
+ var W=Math.max(300,el.clientWidth-12),H=Math.round(Math.max(236,Math.min(346,W*.38+16))),M={l:76,r:10,t:10,b:42},x0=Infinity,x1=-Infinity,ym=0;
  var rate=function(m,w){return w[5]/(w[4]/24)*(st.norm?SNORM[m]:1)},ms=S.modes.filter(function(m){return st.gm[m]&&(S.gpd[m]||[]).length});
  S.modes.forEach(function(m){(S.gpd[m]||[]).forEach(function(w){x0=Math.min(x0,w[2]);x1=Math.max(x1,w[3])})});   // the time axis stays put when modes are switched off
  if(!isFinite(x0)){el.innerHTML='<p class="dim">'+T('Za mało skanów, żeby policzyć gry.','Not enough scans to count games yet.')+'</p>';return}
  ms.forEach(function(m){(S.gpd[m]||[]).forEach(function(w){ym=Math.max(ym,rate(m,w))})});
- var w3=st.w3c?Object.keys(S.w3c||{}).filter(function(m){return st.gm[m]}):[];
+ var AL=st.gm.all?gpdAll(S,st):[];AL.forEach(function(x){ym=Math.max(ym,x[2])});
+ var w3=st.w3c?Object.keys(S.w3c||{}).filter(function(m){return st.gm[m]&&!(m=='all'&&st.norm)}):[];
  w3.forEach(function(m){S.w3c[m].forEach(function(x){var a=sutc(x[0]);if(Math.min(a+86400,x1)-Math.max(a,x0)>=43200)ym=Math.max(ym,x[1]*(st.norm?SNORM[m]:1))})});
  var a0=new Date(x0*1000),a1=new Date(x1*1000);a0.setHours(0,0,0,0);a1=new Date(a1.getFullYear(),a1.getMonth(),a1.getDate()+1);x0=a0/1000;x1=a1/1000;
  var yt=snice(0,ym||1),F=sframe(W,H,M,x0,x1,yt,function(v){return snf(v)}),X=F.X,Y=F.Y,fills='',lines='',dash='',hits='';
  w3.forEach(function(m){var p='',prev=null;S.w3c[m].forEach(function(x){var a=sutc(x[0]),b=a+86400;if(Math.min(b,x1)-Math.max(a,x0)<43200)return;a=Math.max(a,x0);b=Math.min(b,x1);
    var v=x[1]*(st.norm?SNORM[m]:1),y=Y(v).toFixed(1);p+=(prev!==null&&Math.abs(prev-a)<1?'L':'M')+X(a).toFixed(1)+','+y+'L'+X(b).toFixed(1)+','+y;prev=b;
    hits+='<rect class="hit" x="'+X(a).toFixed(1)+'" y="'+(Y(v)-6).toFixed(1)+'" width="'+Math.max(3,X(b)-X(a)).toFixed(1)+'" height="12" fill="transparent"'+
-    stip('W3Champions · '+sml(m)+' · '+sdayl(x[0])+' (UTC)\n'+snf(x[1])+' '+T('gier','games')+(st.norm?' · '+T('po normalizacji: ','normalized: ')+snf(v):''))+'/>'});
-  if(p)dash+='<path d="'+p+'" fill="none" stroke="'+SMC[m]+'" stroke-width="1.6" stroke-dasharray="5 4" opacity=".9"/>'});
+    stip('W3Champions · '+(m=='all'?T('wszystkie tryby','all modes'):sml(m))+' · '+sdayl(x[0])+' (UTC)\n'+snf(x[1])+' '+T('gier','games')+(st.norm?' · '+T('po normalizacji: ','normalized: ')+snf(v):''))+'/>'});
+  if(p)dash+='<path d="'+p+'" fill="none" stroke="'+W3C_GOLD+'" stroke-width="'+(m=='all'?2.4:1.6)+'" stroke-dasharray="5 4" opacity=".95"/>'});
  ms.forEach(function(m){var c=SMC[m],p='',prev=null;(S.gpd[m]||[]).slice().sort(function(a,b){return a[2]-b[2]}).forEach(function(w){var v=rate(m,w),a=X(w[2]),b=X(w[3]),y=Y(v);
    p+=(prev!==null&&Math.abs(prev-w[2])<120?'L':'M')+a.toFixed(1)+','+y.toFixed(1)+'L'+b.toFixed(1)+','+y.toFixed(1);prev=w[3];
    fills+='<rect x="'+a.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+Math.max(1,b-a).toFixed(1)+'" height="'+Math.max(0,Y(0)-y).toFixed(1)+'" fill="'+c+'" fill-opacity=".07"/>';
@@ -531,7 +554,16 @@ function gpdDraw(S,st){
     stip(sml(m)+' · '+sdm(w[2])+' → '+sdm(w[3])+' ('+snf(w[4],1)+' '+T('godz.','h')+')\n'+snf(w[5])+' '+T('gier','games')+' · '+snf(Math.round(w[5]/(w[4]/24)))+' '+T('na dobę','per day')+
      (st.norm?'\n'+T('po normalizacji: ','normalized: ')+snf(Math.round(v)):''))+'/>'});
   lines+='<path d="'+p+'" fill="none" stroke="'+c+'" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>'});
- el.innerHTML='<svg class="ch" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="'+esc(T('Gry dziennie','Games per day'))+'">'+F.svg+fills+dash+lines+hits+'</svg>'}
+ var aS='',aD='',py=null;
+ AL.forEach(function(x){var a=X(x[0]),b=X(x[1]),y=Y(x[2]),g=(py===null?'M'+a.toFixed(1)+','+y.toFixed(1):'M'+a.toFixed(1)+','+py.toFixed(1)+'L'+a.toFixed(1)+','+y.toFixed(1))+'L'+b.toFixed(1)+','+y.toFixed(1);
+  if(x[3].length)aD+=g;else aS+=g;py=y;
+  hits+='<rect class="hit" x="'+a.toFixed(1)+'" y="'+(y-7).toFixed(1)+'" width="'+Math.max(4,b-a).toFixed(1)+'" height="14" fill="transparent"'+
+   stip(T('Wszystkie tryby','All modes')+' · '+sdm(x[0])+' → '+sdm(x[1])+'\n'+T('ok. ','about ')+snf(Math.round(x[2]))+' '+(st.norm?T('na dobę (znormalizowane)','per day (normalized)'):T('gier na dobę','games per day'))+'\n'+
+    (x[3].length?T('szacunek dla: ','estimated for: ')+x[3].map(sml).join(', ')+T(' (brak okna w tym czasie, więc użyte jest najbliższe zmierzone tempo)',' (no window at that time, so the nearest measured rate is used)'):T('wszystkie tryby zmierzone','all modes measured')))+'/>'});
+ if(aS)lines+='<path d="'+aS+'" fill="none" stroke="'+SMC.all+'" stroke-width="3.2" stroke-linejoin="round"/>';
+ if(aD)lines+='<path d="'+aD+'" fill="none" stroke="'+SMC.all+'" stroke-width="3.2" stroke-dasharray="1 6" stroke-linecap="round"/>';
+ el.innerHTML='<svg class="ch" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="'+esc(T('Gry dziennie','Games per day'))+'">'+F.svg+
+  saxes(W,H,M,T('Data','Date'),T('Gry dziennie','Games per day')+(st.norm?' ('+T('znormalizowane','normalized')+')':''))+fills+dash+lines+hits+'</svg>'}
 function spmName(k){return k=='mean'?T('średnia','mean'):k=='p50'?T('mediana','median'):k=='p99'?T('99. percentyl','99th percentile'):k=='p90'?T('90. percentyl','90th percentile'):
  k=='p75'?T('75. percentyl','75th percentile'):k=='p25'?T('25. percentyl','25th percentile'):k=='p10'?T('10. percentyl','10th percentile'):k=='top'?T('średnia top 100','top 100 mean'):
  k=='sum'?T('suma MMR (mln)','total MMR (M)'):k}
@@ -555,7 +587,7 @@ function poolDraw(S,st){
   '<div class="card"><b>'+snf(l[6])+'</b><span>'+T('mediana MMR','median MMR')+' · '+ssg(l[6]-f[6])+'</span></div>'+
   '<div class="card"><b>'+snf(l[2])+'</b><span>'+unit+' '+T('w rankingu','on the ladder')+' · '+ssg(l[2]-f[2])+'</span></div>'+
   '<div class="card"><b>'+snf(l[11]/1e6,2)+' '+T('mln','M')+'</b><span>'+T('suma MMR','total MMR')+' · '+ssg((l[11]-f[11])/1e6,2)+' '+T('mln','M')+'</span></div></div>';
- var W=Math.max(300,el.clientWidth-12),H=Math.round(Math.max(220,Math.min(320,W*.36))),M={l:62,r:12,t:12,b:24},lines=[];
+ var W=Math.max(300,el.clientWidth-12),H=Math.round(Math.max(236,Math.min(336,W*.36+16))),M={l:80,r:12,t:12,b:42},lines=[];
  if(st.pv=='delta')SPM.forEach(function(k){lines.push({k:k[0],c:k[2],w:k[0]=='mean'?3.4:2.2,v:R.map(function(r){return r[k[1]]-f[k[1]]})})});
  else if(st.pv=='abs')lines=[{k:'mean',c:'#d9a521',w:3,v:R.map(function(r){return r[3]})},{k:'p50',c:'#e8dcc2',w:2.4,v:R.map(function(r){return r[6]})}];
  else if(st.pv=='sum')lines=[{k:'sum',c:'#d9a521',w:3,v:R.map(function(r){return r[11]/1e6})}];
@@ -567,7 +599,8 @@ function poolDraw(S,st){
   s+='<path d="'+p+'" fill="none" stroke="'+q.c+'" stroke-width="'+q.w+'" stroke-linejoin="round" stroke-linecap="round"/>';
   q.v.forEach(function(v,i){s+='<circle cx="'+F.X(R[i][1]).toFixed(1)+'" cy="'+F.Y(v).toFixed(1)+'" r="3.4" fill="'+q.c+'"/>'})});
  R.forEach(function(r){var x=F.X(r[1]);hits+='<rect class="hit" x="'+(x-10).toFixed(1)+'" y="'+M.t+'" width="20" height="'+(H-M.t-M.b)+'" fill="transparent"'+stip(spTip(m,r,f,unit))+'/>'});
- el.innerHTML='<svg class="ch" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="'+esc(T('MMR całej puli graczy','MMR of the whole player pool'))+'">'+s+hits+'</svg>'+
+ el.innerHTML='<svg class="ch" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="'+esc(T('MMR całej puli graczy','MMR of the whole player pool'))+'">'+s+
+  saxes(W,H,M,T('Data','Date'),st.pv=='delta'?T('Zmiana MMR','MMR change'):st.pv=='abs'?'MMR':st.pv=='sum'?spmName('sum'):unit+' '+T('w rankingu','on the ladder'))+hits+'</svg>'+
   '<div class="chips leg">'+lines.map(function(q){return '<span><i style="background:'+q.c+'"></i>'+esc(q.k=='n'?unit+' '+T('w rankingu','on the ladder'):spmName(q.k))+(st.pv=='delta'?' '+ssg(q.v[q.v.length-1],q.k=='mean'?1:0):'')+'</span>'}).join('')+'</div>';
  var o='<h3>'+T('Tempo zmian','Rate of change')+'</h3><div class="tw"><table class="trend"><tr><th>'+T('Miara','Measure')+'</th><th class="n">'+sdd(f[0])+'</th><th class="n">'+sdd(l[0])+'</th><th class="n">'+T('Zmiana','Change')+'</th><th class="n">'+T('Na dobę','Per day')+'</th></tr>';
  [['mean',3,1],['p50',6,0],['p99',9,0],['p90',8,0],['p75',7,0],['p25',5,0],['p10',4,0],['top',10,1]].forEach(function(k){var sl=sslope(R,k[1]);
@@ -584,19 +617,47 @@ function poolDraw(S,st){
    '<li><b>'+ssg(dM-eP,1)+'</b> '+T('— nowe wpisy i inne zmiany składu rankingu','— new entries and other changes of who is on the ladder')+(nm_!=null?T(' (nowe wpisy mają średnio ok. ',' (new entries average about ')+snf(nm_)+' MMR)':'')+'</li></ul></div>'}
  o+='<p class="dim small">'+T('Na dobę = nachylenie prostej dopasowanej do wszystkich pełnych skanów (metoda najmniejszych kwadratów). Percentyl: np. 90. percentyl to MMR, którego nie przekracza 90% rankingu.','Per day = the slope of a straight line fitted to all complete scans (least squares). Percentile: e.g. the 90th percentile is the MMR that 90% of the ladder does not exceed.')+'</p>';
  te.innerHTML=o}
+function stop(q,x){                                 // % of the ladder with MORE MMR than x (the best = 0), from 1001 quantiles of the latest scan
+ if(!q||!q.length)return null;var n=q.length-1;if(x>=q[n])return 0;if(x<q[0])return 100;
+ var lo=0,hi=n;while(hi-lo>1){var md=(lo+hi)>>1;if(q[md]<=x)lo=md;else hi=md}
+ return Math.max(0,Math.min(100,100*(1-(lo+(q[hi]>q[lo]?(x-q[lo])/(q[hi]-q[lo]):0))/n)))}
+function stp(v){return v==null?'–':snf(v,v>0&&v<1?2:1)+'%'}                                 // the best = Top 0,0% (Saul 03.11)
+function distCtl(S,st){                              // Saul 03.11: its own mode switch, current state / all scans of the season, your MMR -> top %
+ return '<div class="chips">'+S.modes.filter(function(m){return (S.hist||{})[m]}).map(function(m){return '<button type="button" class="sw'+(m==st.dm?' on':'')+'" data-dm="'+esc(m)+'">'+esc(sml(m))+'</button>'}).join('')+'</div>'+
+  '<div class="chips">'+[['now',T('Aktualny stan','Current state')],['all',T('Wszystkie skany sezonu','All scans this season')]].map(function(v){return '<button type="button" class="sw'+(v[0]==st.dv?' on':'')+'" data-dv="'+v[0]+'">'+v[1]+'</button>'}).join('')+'</div>'+
+  '<div class="mymmr"><label for="dmmr">'+T('Twój MMR','Your MMR')+'</label><input id="dmmr" type="number" inputmode="numeric" min="0" max="9999" step="1" placeholder="4400" value="'+esc(st.my||'')+'"><span id="dres" class="dim"></span></div>'}
 function distDraw(S,st){
- var el=document.getElementById('dist');if(!el)return;var h=(S.hist||{})[st.pm];
- if(!h||!h.rows.length){el.innerHTML='<p class="dim">–</p>';return}
- var W=Math.max(300,el.clientWidth-12),H=Math.round(Math.max(200,Math.min(280,W*.3))),M={l:52,r:10,t:10,b:24},rs=h.rows,bw=S.bin||100,lo=rs[0][0],hi=rs[rs.length-1][0]+bw,ym=0;
- rs.forEach(function(r){ym=Math.max(ym,r[1],r[2])});
- var yt=snice(0,ym),X=function(v){return M.l+(v-lo)/(hi-lo)*(W-M.l-M.r)},Y=function(v){return M.t+(yt.hi-v)/(yt.hi-yt.lo)*(H-M.t-M.b)},s='',hits='',p='',bp=Math.max(1,X(lo+bw)-X(lo)-1);
+ var el=document.getElementById('dist'),res=document.getElementById('dres'),m=st.dm,h=(S.hist||{})[m];if(!el)return;
+ if(!h||!h.rows.length){el.innerHTML='<p class="dim">–</p>';if(res)res.textContent='';return}
+ var nr=h.runs.length,q=h.q||[],P=S.pool[m]||[],N=P.length?P[P.length-1][2]:null,unit=m.indexOf('arranged')>=0?T('drużyn','teams'):T('graczy','players');
+ var W=Math.max(300,el.clientWidth-12),H=Math.round(Math.max(250,Math.min(330,W*.3+40))),M={l:70,r:52,t:36,b:42},rs=h.rows,bw=S.bin||100,lo=rs[0][0],hi=rs[rs.length-1][0]+bw,ym=0;
+ rs.forEach(function(r){for(var i=1;i<=nr;i++)if(st.dv=='all'||i==nr)ym=Math.max(ym,r[i])});
+ var yt=snice(0,ym),X=function(v){return M.l+(v-lo)/(hi-lo)*(W-M.l-M.r)},Y=function(v){return M.t+(yt.hi-v)/(yt.hi-yt.lo)*(H-M.t-M.b)},
+  Yp=function(v){return M.t+(100-v)/100*(H-M.t-M.b)},s='',hits='',bp=Math.max(1,X(lo+bw)-X(lo)-1);
  yt.t.forEach(function(v){var y=Y(v).toFixed(1);s+='<line class="gl'+(v==0?' z':'')+'" x1="'+M.l+'" x2="'+(W-M.r)+'" y1="'+y+'" y2="'+y+'"/><text x="'+(M.l-6)+'" y="'+(+y+4)+'" text-anchor="end">'+snf(v)+'</text>'});
  snice(lo,hi,Math.max(3,Math.floor((W-M.l-M.r)/70))).t.forEach(function(v){if(v>=lo&&v<=hi)s+='<text x="'+X(v).toFixed(1)+'" y="'+(H-M.b+16)+'" text-anchor="middle">'+v+'</text>'});
- rs.forEach(function(r,i){var x=X(r[0]);s+='<rect x="'+x.toFixed(1)+'" y="'+Y(r[2]).toFixed(1)+'" width="'+bp.toFixed(1)+'" height="'+Math.max(0,Y(0)-Y(r[2])).toFixed(1)+'" fill="#d9a521" fill-opacity=".8"/>';
-  p+=(i?'L':'M')+x.toFixed(1)+','+Y(r[1]).toFixed(1)+'L'+(x+bp+1).toFixed(1)+','+Y(r[1]).toFixed(1);
-  hits+='<rect class="hit" x="'+x.toFixed(1)+'" y="'+M.t+'" width="'+(bp+1).toFixed(1)+'" height="'+(H-M.t-M.b)+'" fill="transparent"'+stip(r[0]+'–'+(r[0]+bw-1)+' MMR\n'+sdd(h.to)+': '+snf(r[2])+'\n'+sdd(h.from)+': '+snf(r[1]))+'/>'});
- el.innerHTML='<svg class="ch" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="'+esc(T('Rozkład MMR','MMR distribution'))+'">'+s+'<path d="'+p+'" fill="none" stroke="#7fc4ff" stroke-width="1.6"/>'+hits+'</svg>'+
-  '<div class="chips leg"><span><i style="background:#d9a521"></i>'+T('ostatni pełny skan','latest complete scan')+' ('+sdd(h.to)+')</span><span><i style="background:#7fc4ff"></i>'+T('pierwszy pełny skan','first complete scan')+' ('+sdd(h.from)+')</span></div>'}
+ rs.forEach(function(r){var x=X(r[0]);s+='<rect x="'+x.toFixed(1)+'" y="'+Y(r[nr]).toFixed(1)+'" width="'+bp.toFixed(1)+'" height="'+Math.max(0,Y(0)-Y(r[nr])).toFixed(1)+'" fill="#d9a521" fill-opacity=".8"/>';
+  hits+='<rect class="hit" x="'+x.toFixed(1)+'" y="'+M.t+'" width="'+(bp+1).toFixed(1)+'" height="'+(H-M.t-M.b)+'" fill="transparent"'+
+   stip(r[0]+'–'+(r[0]+bw-1)+' MMR\n'+(st.dv=='all'?h.runs.map(function(x,i){return sdd(x)+': '+snf(r[i+1])}).reverse().join('\n'):sdd(h.runs[nr-1])+': '+snf(r[nr])+' '+unit)+
+    (q.length?'\n'+T('Top ','Top ')+stp(stop(q,r[0]+bw-1))+' – '+stp(stop(q,r[0]-1)):''))+'/>'});
+ if(st.dv=='all')for(var i=1;i<nr;i++){var p='';rs.forEach(function(r,j){var x=X(r[0]);p+=(j?'L':'M')+x.toFixed(1)+','+Y(r[i]).toFixed(1)+'L'+(x+bp+1).toFixed(1)+','+Y(r[i]).toFixed(1)});
+  s+='<path d="'+p+'" fill="none" stroke="#7fc4ff" stroke-width="1.3" stroke-opacity="'+(0.3+0.6*i/nr).toFixed(2)+'"/>'}
+ if(q.length){var p='';for(var k=0;k<=160;k++){var x=lo+(hi-lo)*k/160;p+=(k?'L':'M')+X(x).toFixed(1)+','+Yp(stop(q,x)).toFixed(1)}
+  s+='<path d="'+p+'" fill="none" stroke="#6fd16f" stroke-width="1.5" opacity=".7"/>';
+  [0,25,50,75,100].forEach(function(v){s+='<text x="'+(W-M.r+6)+'" y="'+(Yp(v)+4).toFixed(1)+'">'+v+'%</text>'});
+  [[50,500],[25,750],[10,900],[5,950],[2,980],[1,990]].forEach(function(k,i){var x=X(q[k[1]]);if(x<M.l||x>W-M.r)return;
+   s+='<line class="pm" x1="'+x.toFixed(1)+'" x2="'+x.toFixed(1)+'" y1="'+(M.t-(i%2?16:4))+'" y2="'+(H-M.b)+'"/><text class="pml" x="'+x.toFixed(1)+'" y="'+(M.t-(i%2?20:8))+'" text-anchor="middle">'+esc(T('Top ','Top ')+k[0]+'%')+'</text>'})}
+ var my=parseInt(st.my,10),msg=T('Wpisz MMR, a pokażę Twoje miejsce.','Type an MMR to see your place.');
+ if(my>0&&q.length){var tp=stop(q,my),x=X(Math.max(lo,Math.min(hi,my))),ab=N!=null?Math.round(N*tp/100):null,rt=x>W-M.r-130;
+  s+='<line x1="'+x.toFixed(1)+'" x2="'+x.toFixed(1)+'" y1="'+M.t+'" y2="'+(H-M.b)+'" stroke="#2f9bff" stroke-width="2.4"/>'+
+   '<text class="pmy" x="'+(x+(rt?-6:6)).toFixed(1)+'" y="'+(M.t+14)+'" text-anchor="'+(rt?'end':'start')+'">'+esc(T('Ty: ','You: ')+T('Top ','Top ')+stp(tp))+'</text>';
+  msg=snf(my)+' MMR · '+sml(m)+' · '+T('Top ','Top ')+stp(tp)+(ab!=null?' — '+T('wyżej jest ','above you: ')+snf(ab)+T(' z ',' of ')+snf(N)+' '+unit:'')}
+ if(res)res.textContent=msg;
+ el.innerHTML='<svg class="ch" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="'+esc(T('Rozkład MMR','MMR distribution'))+'">'+s+
+  saxes(W,H,M,'MMR',T('Liczba w rankingu','Number on the ladder'))+'<text class="al" transform="translate('+(W-8)+','+((M.t+H-M.b)/2).toFixed(1)+') rotate(90)" text-anchor="middle">'+esc(T('Top ','Top ')+'%')+'</text>'+hits+'</svg>'+
+  '<div class="chips leg"><span><i style="background:#d9a521"></i>'+T('ostatni pełny skan','latest complete scan')+' ('+esc(sdd(h.runs[nr-1]))+')</span>'+
+  (st.dv=='all'&&nr>1?'<span><i style="background:#7fc4ff"></i>'+T('wcześniejsze skany','earlier scans')+' ('+esc(sdd(h.runs[0]))+' – '+esc(sdd(h.runs[nr-2]))+')</span>':'')+
+  (q.length?'<span><i style="background:#6fd16f"></i>'+T('Top % (prawa oś)','Top % (right axis)')+'</span>':'')+'</div>'}
 function scanTable(S,st,K){
  var L_=[];Object.keys(K.P).forEach(function(m){Object.keys(K.P[m]).forEach(function(r){L_.push([m,r,K.P[m][r],S.scans.filter(function(x){return x[0]==m&&x[1]==r})[0]||[]])})});
  if(!L_.length)return '';
@@ -608,24 +669,27 @@ function scanTable(S,st,K){
 function statsDraw(S,st){gpdDraw(S,st);poolDraw(S,st);distDraw(S,st)}
 function statsPage(){
  var S=D.stats,root=document.getElementById('app');if(!S){root.innerHTML='';return}
- var st=window._st=window._st||{gm:{},norm:false,w3c:true,pm:'1v1',pv:'delta',all:false},K=strack(S,Math.floor(((root.clientWidth||900)-150)/26));
- S.modes.forEach(function(m){if(!(m in st.gm))st.gm[m]=true});
+ var st=window._st=window._st||{gm:{},norm:false,w3c:true,pm:'1v1',pv:'delta',all:false,dm:'1v1',dv:'now',my:''},K=strack(S,Math.floor(((root.clientWidth||900)-150)/26));
+ S.modes.forEach(function(m){if(!(m in st.gm))st.gm[m]=true});if(!('all' in st.gm))st.gm.all=true;
  if(!(S.pool[st.pm]||[]).length)st.pm=S.modes.filter(function(m){return (S.pool[m]||[]).length})[0]||'1v1';
- var o='<p class="lead">'+T('Cel: codziennie nowy, pełny skan każdego z ','Goal: a new, complete scan of each of the ')+S.modes.length+
-  T(' trybów rankingu Battle.net. Dzień liczy się dla trybu dopiero wtedy, gdy jego skan jest już na tej stronie. Liczymy od ',' Battle.net ladder modes every day. A day counts for a mode only once its scan is on this site. Counting since ')+esc(sdayl(S.since))+'.</p>';
- o+=statsCards(S,K)+statsGrid(S,K)+(K.runs?'':'<p class="dim small">'+T('Od tego dnia żaden nowy skan nie jest jeszcze na stronie.','No new scan from that day is on the site yet.')+'</p>');
+ if(!(S.hist||{})[st.dm])st.dm=S.modes.filter(function(m){return (S.hist||{})[m]})[0]||'1v1';
+ var o=statsCards(S,K)+statsGrid(S,K)+(K.runs?'':'<p class="dim small">'+T('Od ','Since ')+esc(sdayl(S.since))+T(' żaden nowy skan nie jest jeszcze na stronie.',' no new scan is on the site yet.')+'</p>');
  o+='<h2>'+T('Gry dziennie','Games per day')+'</h2>'+gpdCtl(S,st)+'<div class="chart" id="gpd"></div><p class="dim small">'+
   T('Linia ciągła: gry w rankingu Battle.net między dwoma kolejnymi skanami trybu, podzielone przez czas między skanami (liczone z graczy obecnych w obu skanach). Linia przerywana: gry dziennie na W3Champions (dni UTC). Znormalizowane, jak na W3Champions: gry 2v2 i FFA liczone podwójnie, 3v3 potrójnie, 4v4 poczwórnie (AT tak samo), żeby porównać popularność trybów.',
-   'Solid line: Battle.net ladder games between two consecutive scans of a mode, divided by the time between the scans (counted from players present in both scans). Dashed line: games per day on W3Champions (UTC days). Normalized, as on W3Champions: 2v2 and FFA games count twice, 3v3 three times, 4v4 four times (AT the same), to compare how popular the modes are.')+'</p>';
+   'Solid line: Battle.net ladder games between two consecutive scans of a mode, divided by the time between the scans (counted from players present in both scans). Dashed line: games per day on W3Champions (UTC days). Normalized, as on W3Champions: 2v2 and FFA games count twice, 3v3 three times, 4v4 four times (AT the same), to compare how popular the modes are.')+'</p>'+
+  '<p class="dim small">'+T('Wszystkie (niebieska): suma 8 trybów Battle.net, każda gra liczona raz - tryby to osobne kolejki (gry AT nie wchodzą do rankingu RT). Część kropkowana: któryś tryb nie miał w tym czasie okna między skanami, więc wzięte jest jego najbliższe zmierzone tempo. W3Champions (złota, przerywana): wszystkie jego tryby, bez normalizacji.','All (blue): the 8 Battle.net modes summed, every game counted once - the modes are separate queues (AT games do not count on the RT ladder). Dotted part: some mode had no window between scans at that time, so its nearest measured rate is used. W3Champions (gold, dashed): all its modes, without normalization.')+'</p>';
  o+='<h2>'+T('MMR całej puli graczy','MMR of the whole player pool')+'</h2>'+poolCtl(S,st)+'<div id="poolc"></div><div class="chart" id="pool"></div><div id="poolt"></div>';
- o+='<h3>'+T('Rozkład MMR','MMR distribution')+'</h3><div class="chart" id="dist"></div>';
+ o+='<h3>'+T('Rozkład MMR','MMR distribution')+'</h3>'+distCtl(S,st)+'<div class="chart" id="dist"></div>';
  o+=scanTable(S,st,K);
  root.innerHTML=o;
  statsDraw(S,st);
  root.querySelectorAll('[data-gm]').forEach(function(b){b.onclick=function(){var m=b.dataset.gm;st.gm[m]=!st.gm[m];b.classList.toggle('off',!st.gm[m]);gpdDraw(S,st)}});
  root.querySelectorAll('[data-sw]').forEach(function(b){b.onclick=function(){var k=b.dataset.sw;st[k]=!st[k];b.classList.toggle('on',st[k]);b.setAttribute('aria-pressed',st[k]?'true':'false');gpdDraw(S,st)}});
- root.querySelectorAll('[data-pm]').forEach(function(b){b.onclick=function(){st.pm=b.dataset.pm;root.querySelectorAll('[data-pm]').forEach(function(x){x.classList.toggle('on',x.dataset.pm==st.pm)});poolDraw(S,st);distDraw(S,st)}});
+ root.querySelectorAll('[data-pm]').forEach(function(b){b.onclick=function(){st.pm=b.dataset.pm;root.querySelectorAll('[data-pm]').forEach(function(x){x.classList.toggle('on',x.dataset.pm==st.pm)});poolDraw(S,st)}});
  root.querySelectorAll('[data-pv]').forEach(function(b){b.onclick=function(){st.pv=b.dataset.pv;root.querySelectorAll('[data-pv]').forEach(function(x){x.classList.toggle('on',x.dataset.pv==st.pv)});poolDraw(S,st)}});
+ root.querySelectorAll('[data-dm]').forEach(function(b){b.onclick=function(){st.dm=b.dataset.dm;root.querySelectorAll('[data-dm]').forEach(function(x){x.classList.toggle('on',x.dataset.dm==st.dm)});distDraw(S,st)}});
+ root.querySelectorAll('[data-dv]').forEach(function(b){b.onclick=function(){st.dv=b.dataset.dv;root.querySelectorAll('[data-dv]').forEach(function(x){x.classList.toggle('on',x.dataset.dv==st.dv)});distDraw(S,st)}});
+ var mi=document.getElementById('dmmr');if(mi)mi.oninput=function(){st.my=mi.value.replace(/[^0-9]/g,'').slice(0,5);distDraw(S,st)};
  var sa=root.querySelector('[data-sall]');if(sa)sa.onclick=function(e){e.preventDefault();st.all=!st.all;var y=window.scrollY;statsPage();window.scrollTo({top:y,behavior:'instant'})};
  var g=root.querySelector('.sgw'),nw=g&&g.querySelector('.sgd.now');if(nw)g.scrollLeft=Math.max(0,nw.offsetLeft-g.clientWidth/2);
  tipInit();
