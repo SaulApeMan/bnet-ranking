@@ -456,7 +456,11 @@ function sutc(d){return Date.UTC(+d.slice(0,4),+d.slice(5,7)-1,+d.slice(8,10))/1
 function tipInit(){                                  // one tooltip for the whole page: hover, keyboard focus and tap
  if(window._tipOn)return;window._tipOn=1;
  var tp=document.createElement('div'),cur=null;tp.className='tip';tp.setAttribute('role','tooltip');tp.hidden=true;document.body.appendChild(tp);
- function show(el){var t=el.getAttribute('data-tip');if(!t)return;cur=el;tp.textContent=t;tp.hidden=false;
+   function fill(t){tp.textContent='';t.split('\n').forEach(function(x,i){var r=document.createElement('div');   // title / 'label<TAB>value' rows / §sub-heading / — separator
+   if(i==0){r.className='tt';r.textContent=x}else if(x=='—'){r.className='ts'}else if(x.charAt(0)=='§'){r.className='th';r.textContent=x.slice(1)}
+   else if(x.indexOf('\t')>=0){var a=document.createElement('span'),b=document.createElement('span'),q=x.split('\t');r.className='tr';a.className='tl';b.className='tv';a.textContent=q[0];b.textContent=q.slice(1).join(' ');r.appendChild(a);r.appendChild(b)}
+   else{r.className='tx';r.textContent=x}tp.appendChild(r)})}
+  function show(el){var t=el.getAttribute('data-tip');if(!t)return;cur=el;fill(t);tp.hidden=false;
   var b=el.getBoundingClientRect(),w=tp.offsetWidth,h=tp.offsetHeight,cw=document.documentElement.clientWidth,x=Math.max(8,Math.min(b.left+b.width/2-w/2,cw-w-8)),y=b.top-h-8;
   if(y<8)y=b.bottom+8;tp.style.left=Math.round(x+window.scrollX)+'px';tp.style.top=Math.round(y+window.scrollY)+'px'}
  function hide(){cur=null;tp.hidden=true}
@@ -487,8 +491,8 @@ function statsCards(S,K){                          // Saul 03.11: latest new sca
   '<div class="sk b"><span>'+T('Średnio trybów na dzień','Modes per day on average')+'</span><b>'+snf(K.cells/Math.max(1,K.seen),1)+' / '+n+'</b></div>'+
   '<div class="sk g"><span>'+T('Dni ze wszystkimi trybami','Days with every mode')+'</span><b>'+(K.el?K.full+' / '+K.el:'–')+'</b></div></div>'}
 function sRunTip(S,m,r,at){var s=S.scans.filter(function(x){return x[0]==m&&x[1]==r})[0];
- return T('skan ','scan ')+sdd(r)+' · '+T('na stronie od ','on the site since ')+sdm(at)+(s?'\n'+(s[6]&&s[7]?shm(s[6])+'–'+shm(s[7])+' ('+sdur(s[7]-s[6])+') · ':'')+
-  snf(s[3])+' '+T('wierszy','rows')+(s[5]!=null?' · '+T('BattleTagi','BattleTags')+' '+s[5]+'%':''):'')}
+ return '§'+T('Skan ','Scan ')+sdd(r)+'\n'+T('Na stronie od','On the site since')+'\t'+sdm(at)+(s?(s[6]&&s[7]?'\n'+T('Skanowanie','Scanning')+'\t'+shm(s[6])+' – '+shm(s[7])+' ('+sdur(s[7]-s[6])+')':'')+
+  '\n'+T('Wiersze','Rows')+'\t'+snf(s[3])+'\n'+T('Strony','Pages')+'\t'+snf(s[2])+(s[5]!=null?'\n'+T('BattleTagi','BattleTags')+'\t'+s[5]+'%':''):'')}
 function statsGrid(S,K){
  var n=S.modes.length,t=K.today,days=K.days,o='<div class="sgw"><div class="sg" style="grid-template-columns:auto repeat('+days.length+',44px)"><span class="sgm"></span>';
  days.forEach(function(d,i){var x=sdate(d),mo=(i==0||x.getDate()==1)?x.toLocaleDateString(locFor(),{month:'short'}):'';
@@ -496,15 +500,15 @@ function statsGrid(S,K){
  S.modes.forEach(function(m){o+='<span class="sgm">'+esc(sml(m))+'</span>';
   days.forEach(function(d){var rs=Object.keys(K.P[m]||{}).filter(function(x){return x.slice(0,10)==d}).sort(),cls=rs.length>1?'c2':rs.length?'c1':d>t?'fut':d==t?'now':'no';
    var at=rs.length?Math.min.apply(null,rs.map(function(r){return K.P[m][r]})):0,hh=at?(function(x){return sp2(x.getHours())+':'+sp2(x.getMinutes())})(new Date(at*1000)):'';
-   o+='<span class="hc '+cls+'"'+stip(sml(m)+' · '+sdayl(d)+'\n'+(rs.length?rs.map(function(r){return sRunTip(S,m,r,K.P[m][r])}).join('\n'):
+   o+='<span class="hc '+cls+'"'+stip(sml(m)+' · '+sdayl(d)+'\n'+(rs.length?rs.map(function(r){return sRunTip(S,m,r,K.P[m][r])}).join('\n—\n'):
     d>t?T('jeszcze przed nami','still ahead'):d==t?T('dziś jeszcze nic nowego na stronie','nothing new on the site yet today'):T('brak nowego pełnego skanu na stronie','no new complete scan on the site')))+'>'+hh+'</span>'})});
  o+='<span class="sgm sgt">'+T('Wszystkie tryby','All modes')+'</span>';
  days.forEach(function(d){var k=K.cnt[d]||0,on=S.modes.filter(function(m){return Object.keys(K.P[m]||{}).some(function(x){return x.slice(0,10)==d})}),
    off=S.modes.filter(function(m){return on.indexOf(m)<0}),cls=k==n?'full':k?'part':d>t?'fut':d==t?'now':'no';
-  o+='<span class="hc sum '+cls+'"'+stip(sdayl(d)+'\n'+(d>t?T('jeszcze przed nami','still ahead'):T('na stronie: ','on the site: ')+(on.length?on.map(sml).join(', '):'–')+' ('+k+'/'+n+')'+
-   (off.length?'\n'+T('brak: ','missing: ')+off.map(sml).join(', '):'')))+'>'+(d>t?'':k)+'</span>'});
+  o+='<span class="hc sum '+cls+'"'+stip(sdayl(d)+'\n'+(d>t?T('jeszcze przed nami','still ahead'):T('Na stronie','On the site')+'\t'+(on.length?on.map(sml).join(', '):'–')+' ('+k+'/'+n+')'+
+    (off.length?'\n'+T('Brak','Missing')+'\t'+off.map(sml).join(', '):'')))+'>'+(d>t?'':k)+'</span>'});
  return '<h2 class="hl">'+T('Skany na stronie','Scans on the site')+'<span class="hleg"><span><i class="hc c1"></i>'+T('nowy pełny skan','new complete scan')+'</span><span><i class="hc c2"></i>'+
-  T('2 skany jednego dnia','2 scans in one day')+'</span><span><i class="hc no"></i>'+T('brak','none')+'</span><span><i class="hc fut"></i>'+T('przed nami','ahead')+'</span></span></h2>'+o+'</div></div>'}
+  T('2 skany jednego dnia','2 scans in one day')+'</span><span><i class="hc no"></i>'+T('brak','none')+'</span><span><i class="hc fut"></i>'+T('przed nami','ahead')+'</span></span></h2>'+o+'</div></div><p class="dim small">'+T('Godziny w Twojej strefie czasowej: ','Times in your time zone: ')+esc(tzName()||'UTC')+'</p>'}
 function saxes(W,H,M,xl,yl){return '<text class="al" x="'+((M.l+W-M.r)/2).toFixed(1)+'" y="'+(H-5)+'" text-anchor="middle">'+esc(xl)+'</text>'+
  '<text class="al" transform="translate(14,'+((M.t+H-M.b)/2).toFixed(1)+') rotate(-90)" text-anchor="middle">'+esc(yl)+'</text>'}
 function snice(a,b,n){if(!(b>a))b=a+1;var r=(b-a)/(n||5),p=Math.pow(10,Math.floor(Math.log(r)/Math.LN10)),f=r/p,s=(f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p,lo=Math.floor(a/s)*s,hi=Math.ceil(b/s)*s,t=[];
@@ -547,21 +551,21 @@ function gpdDraw(S,st){
  w3.forEach(function(m){var p='',prev=null;S.w3c[m].forEach(function(x){var a=sutc(x[0]),b=a+86400;if(Math.min(b,x1)-Math.max(a,x0)<43200)return;a=Math.max(a,x0);b=Math.min(b,x1);
    var v=x[1]*(st.norm?SNORM[m]:1),y=Y(v).toFixed(1);p+=(prev!==null&&Math.abs(prev-a)<1?'L':'M')+X(a).toFixed(1)+','+y+'L'+X(b).toFixed(1)+','+y;prev=b;
    hits+='<rect class="hit" x="'+X(a).toFixed(1)+'" y="'+(Y(v)-6).toFixed(1)+'" width="'+Math.max(3,X(b)-X(a)).toFixed(1)+'" height="12" fill="transparent"'+
-    stip('W3Champions · '+(m=='all'?T('melee razem','melee total'):sml(m))+' · '+sdayl(x[0])+' (UTC)\n'+snf(x[1])+' '+T('gier','games')+(st.norm?' · '+T('po normalizacji: ','normalized: ')+snf(v):''))+'/>'});
+    stip('W3Champions · '+(m=='all'?T('melee razem','melee total'):sml(m))+'\n'+T('Dzień (UTC)','Day (UTC)')+'\t'+sdayl(x[0])+'\n'+T('Gry','Games')+'\t'+snf(x[1])+(st.norm?'\n'+T('Znormalizowane','Normalized')+'\t'+snf(v):''))+'/>'});
   if(p)dash+='<path d="'+p+'" fill="none" stroke="'+W3C_GOLD+'" stroke-width="'+(m=='all'?2.4:1.6)+'" stroke-dasharray="5 4" opacity=".95"/>'});
  ms.forEach(function(m){var c=SMC[m],p='',prev=null;(S.gpd[m]||[]).slice().sort(function(a,b){return a[2]-b[2]}).forEach(function(w){var v=rate(m,w),a=X(w[2]),b=X(w[3]),y=Y(v);
    p+=(prev!==null&&Math.abs(prev-w[2])<120?'L':'M')+a.toFixed(1)+','+y.toFixed(1)+'L'+b.toFixed(1)+','+y.toFixed(1);prev=w[3];
    fills+='<rect x="'+a.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+Math.max(1,b-a).toFixed(1)+'" height="'+Math.max(0,Y(0)-y).toFixed(1)+'" fill="'+c+'" fill-opacity=".07"/>';
    hits+='<rect class="hit" x="'+a.toFixed(1)+'" y="'+(y-7).toFixed(1)+'" width="'+Math.max(4,b-a).toFixed(1)+'" height="14" fill="transparent"'+
-    stip(sml(m)+' · '+sdm(w[2])+' → '+sdm(w[3])+' ('+snf(w[4],1)+' '+T('godz.','h')+')\n'+snf(w[5])+' '+T('gier','games')+' · '+snf(Math.round(w[5]/(w[4]/24)))+' '+T('na dobę','per day')+
-     (st.norm?'\n'+T('po normalizacji: ','normalized: ')+snf(Math.round(v)):''))+'/>'});
+    stip(sml(m)+' · Battle.net\n'+T('Od','From')+'\t'+sdm(w[2])+'\n'+T('Do','To')+'\t'+sdm(w[3])+'\n'+T('Czas','Duration')+'\t'+snf(w[4],1)+' '+T('godz.','h')+'\n'+
+      T('Gry','Games')+'\t'+snf(w[5])+'\n'+T('Na dobę','Per day')+'\t'+snf(Math.round(w[5]/(w[4]/24)))+(st.norm?'\n'+T('Znormalizowane','Normalized')+'\t'+snf(Math.round(v)):''))+'/>'});
   lines+='<path d="'+p+'" fill="none" stroke="'+c+'" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>'});
  var aS='',aD='',py=null;
  AL.forEach(function(x){var a=X(x[0]),b=X(x[1]),y=Y(x[2]),g=(py===null?'M'+a.toFixed(1)+','+y.toFixed(1):'M'+a.toFixed(1)+','+py.toFixed(1)+'L'+a.toFixed(1)+','+y.toFixed(1))+'L'+b.toFixed(1)+','+y.toFixed(1);
   if(x[3].length)aD+=g;else aS+=g;py=y;
   hits+='<rect class="hit" x="'+a.toFixed(1)+'" y="'+(y-7).toFixed(1)+'" width="'+Math.max(4,b-a).toFixed(1)+'" height="14" fill="transparent"'+
-   stip(T('Wszystkie tryby','All modes')+' · '+sdm(x[0])+' → '+sdm(x[1])+'\n'+T('ok. ','about ')+snf(Math.round(x[2]))+' '+(st.norm?T('na dobę (znormalizowane)','per day (normalized)'):T('gier na dobę','games per day'))+'\n'+
-    (x[3].length?T('szacunek dla: ','estimated for: ')+x[3].map(sml).join(', ')+T(' (brak okna w tym czasie, więc użyte jest najbliższe zmierzone tempo)',' (no window at that time, so the nearest measured rate is used)'):T('wszystkie tryby zmierzone','all modes measured')))+'/>'});
+   stip(T('Wszystkie tryby','All modes')+' · Battle.net\n'+T('Od','From')+'\t'+sdm(x[0])+'\n'+T('Do','To')+'\t'+sdm(x[1])+'\n'+(st.norm?T('Znormalizowane','Normalized'):T('Na dobę','Per day'))+'\t'+T('ok. ','about ')+snf(Math.round(x[2]))+'\n'+
+     (x[3].length?T('Szacunek dla','Estimated for')+'\t'+x[3].map(sml).join(', ')+'\n'+T('najbliższe zmierzone tempo (brak okna w tym czasie)','nearest measured rate (no window at that time)'):T('wszystkie tryby zmierzone','all modes measured')))+'/>'});
  if(aS)lines+='<path d="'+aS+'" fill="none" stroke="'+SMC.all+'" stroke-width="3.2" stroke-linejoin="round"/>';
  if(aD)lines+='<path d="'+aD+'" fill="none" stroke="'+SMC.all+'" stroke-width="3.2" stroke-dasharray="1 6" stroke-linecap="round"/>';
  el.innerHTML='<svg class="ch" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="'+esc(T('Gry dziennie','Games per day'))+'">'+F.svg+
@@ -592,8 +596,8 @@ function poolCtl(S,st){                             // Saul 03.11: one simple ch
  return '<div class="chips">'+[['time',T('W czasie','Over time')],['cmp',T('Porównanie trybów','Modes compared')]].map(function(v){return '<button type="button" class="sw'+(v[0]==st.pc?' on':'')+'" data-pc="'+v[0]+'">'+v[1]+'</button>'}).join('')+'</div>'+
   '<div class="chips">'+S.modes.filter(function(m){return (S.pool[m]||[]).length}).map(function(m){return '<button type="button" class="sw'+(m==st.pm?' on':'')+'" data-pm="'+esc(m)+'">'+esc(sml(m))+'</button>'}).join('')+'</div>'}
 function spTip(m,r,unit){return sml(m)+' · '+T('skan ','scan ')+sdd(r[0])+'\n'+
- T('najwyższe MMR','highest MMR')+' '+snf(r[13])+'\n'+T('średni MMR','mean MMR')+' '+snf(r[3],1)+'\n'+T('mediana MMR','median MMR')+' '+snf(r[6])+'\n'+
- T('najniższe MMR','lowest MMR')+' '+snf(r[12])+'\n'+T('środkowe 80% rankingu','middle 80% of the ladder')+': '+snf(r[4])+' – '+snf(r[8])+'\n'+snf(r[2])+' '+unit}
+ T('najwyższe MMR','highest MMR')+'\t'+snf(r[13])+'\n'+T('średni MMR','mean MMR')+'\t'+snf(r[3],1)+'\n'+T('mediana MMR','median MMR')+'\t'+snf(r[6])+'\n'+
+ T('najniższe MMR','lowest MMR')+'\t'+snf(r[12])+'\n'+T('środkowe 80% rankingu','middle 80% of the ladder')+'\t'+snf(r[4])+' – '+snf(r[8])+'\n'+T('Liczba w rankingu','Number on the ladder')+'\t'+snf(r[2])+' '+unit}
 function poolDraw(S,st){                            // pool row: [run,t,n,mean,p10,p25,p50,p75,p90,p99,top100,sum,min,max]
  var m=st.pm,R=S.pool[m]||[],el=document.getElementById('pool'),ce=document.getElementById('poolc'),te=document.getElementById('poolt');if(!el)return;
  if(te)te.innerHTML='';
@@ -641,8 +645,8 @@ function distDraw(S,st){
  snice(lo,hi,Math.max(3,Math.floor((W-M.l-M.r)/70))).t.forEach(function(v){if(v>=lo&&v<=hi)s+='<text x="'+X(v).toFixed(1)+'" y="'+(H-M.b+16)+'" text-anchor="middle">'+v+'</text>'});
  rs.forEach(function(r){var x=X(r[0]);s+='<rect x="'+x.toFixed(1)+'" y="'+Y(r[nr]).toFixed(1)+'" width="'+bp.toFixed(1)+'" height="'+Math.max(0,Y(0)-Y(r[nr])).toFixed(1)+'" fill="#d9a521" fill-opacity=".8"/>';
   hits+='<rect class="hit" x="'+x.toFixed(1)+'" y="'+M.t+'" width="'+(bp+1).toFixed(1)+'" height="'+(H-M.t-M.b)+'" fill="transparent"'+
-   stip(r[0]+'–'+(r[0]+bw-1)+' MMR\n'+(st.dv=='all'?h.runs.map(function(x,i){return sdd(x)+': '+snf(r[i+1])}).reverse().join('\n'):sdd(h.runs[nr-1])+': '+snf(r[nr])+' '+unit)+
-    (q.length?'\n'+T('Top ','Top ')+stp(stop(q,r[0]+bw-1))+' – '+stp(stop(q,r[0]-1)):''))+'/>'});
+   stip(r[0]+'–'+(r[0]+bw-1)+' MMR · '+sml(m)+'\n'+(st.dv=='all'?h.runs.map(function(x,i){return T('skan ','scan ')+sdd(x)+'\t'+snf(r[i+1])}).reverse().join('\n'):T('skan ','scan ')+sdd(h.runs[nr-1])+'\t'+snf(r[nr])+' '+unit)+
+     (q.length?'\n'+T('Top ','Top ')+'%\t'+stp(stop(q,r[0]+bw-1))+' – '+stp(stop(q,r[0]-1)):''))+'/>'});
  if(st.dv=='all')for(var i=1;i<nr;i++){var p='';rs.forEach(function(r,j){var x=X(r[0]);p+=(j?'L':'M')+x.toFixed(1)+','+Y(r[i]).toFixed(1)+'L'+(x+bp+1).toFixed(1)+','+Y(r[i]).toFixed(1)});
   s+='<path d="'+p+'" fill="none" stroke="#7fc4ff" stroke-width="1.3" stroke-opacity="'+(0.3+0.6*i/nr).toFixed(2)+'"/>'}
  if(q.length){var p='';for(var k=0;k<=160;k++){var x=lo+(hi-lo)*k/160;p+=(k?'L':'M')+X(x).toFixed(1)+','+Yp(stop(q,x)).toFixed(1)}
@@ -669,11 +673,56 @@ function scanTable(S,st,K){
  L_.slice(0,st.all?L_.length:12).forEach(function(x){var s=x[3];o+='<tr><td>'+esc(sml(x[0]))+'</td><td>'+esc(sdd(x[1]))+'</td><td>'+esc(sdm(x[2]))+'</td><td class="n">'+(s[6]&&s[7]?sdur(s[7]-s[6]):'–')+'</td><td class="n">'+snf(s[2])+'</td><td class="n">'+snf(s[3])+'</td><td class="n">'+(s[5]!=null?s[5]+'%':'–')+'</td></tr>'});
  if(L_.length>12)o+='<tr class="morerow"><td colspan="7"><a href="#" data-sall="1">'+(st.all?'▲ '+T('Zwiń','Collapse')+' ▲':'▼ '+T('Pokaż wszystkie','Show all')+' ('+L_.length+') ▼')+'</a></td></tr>';
  return o+'</table></div>'}
-function statsDraw(S,st){gpdDraw(S,st);poolDraw(S,st);distDraw(S,st)}
+function ppdCtl(S,st){                               // Saul 04.11: unique Battle.net players per window / day
+ return '<div class="chips"><button type="button" data-pp="all"'+(st.pp.all?'':' class="off"')+'><i style="background:'+SMC.all+'"></i>'+T('Wszystkie','All')+'</button>'+
+  S.modes.filter(function(m){return ((S.ppd||{})[m]||[]).length}).map(function(m){return '<button type="button" data-pp="'+esc(m)+'"'+(st.pp[m]?'':' class="off"')+'><i style="background:'+SMC[m]+'"></i>'+esc(sml(m))+'</button>'}).join('')+'</div>'}
+function ppdDraw(S,st){                              // ppd row: [from,to,t0,t1,hours,players,untagged entries,active entries]; ppd_all: [day,unique,modes,sum of modes,t]
+ var el=document.getElementById('ppd');if(!el)return;var P=S.ppd||{},A=S.ppd_all||[];
+ var W=Math.max(300,el.clientWidth-12),H=Math.round(Math.max(236,Math.min(346,W*.38+16))),M={l:76,r:10,t:10,b:42},x0=Infinity,x1=-Infinity,ym=0;
+ var ms=S.modes.filter(function(m){return st.pp[m]&&(P[m]||[]).length}),day=function(h){return h>=18&&h<=30};
+ S.modes.forEach(function(m){(P[m]||[]).forEach(function(w){x0=Math.min(x0,w[2]);x1=Math.max(x1,w[3])})});
+ if(!isFinite(x0)){el.innerHTML='<p class="dim">'+T('Za mało skanów, żeby policzyć graczy.','Not enough scans to count players yet.')+'</p>';return}
+ ms.forEach(function(m){(P[m]||[]).forEach(function(w){ym=Math.max(ym,w[5])})});
+ if(st.pp.all)A.forEach(function(a){ym=Math.max(ym,a[1])});
+ var a0=new Date(x0*1000),a1=new Date(x1*1000);a0.setHours(0,0,0,0);a1=new Date(a1.getFullYear(),a1.getMonth(),a1.getDate()+1);x0=a0/1000;x1=a1/1000;
+ var yt=snice(0,ym||1),F=sframe(W,H,M,x0,x1,yt,function(v){return snf(v)}),X=F.X,Y=F.Y,lines='',hits='',dots='';
+ ms.forEach(function(m){var c=SMC[m],pS='',pD='',py=null,prev=null,at=m.indexOf('arranged')>=0;
+  (P[m]||[]).slice().sort(function(a,b){return a[2]-b[2]}).forEach(function(w){var a=X(w[2]),b=X(w[3]),y=Y(w[5]);
+   var g=(prev!==null&&Math.abs(prev-w[2])<120?'M'+a.toFixed(1)+','+py.toFixed(1)+'L'+a.toFixed(1)+','+y.toFixed(1):'M'+a.toFixed(1)+','+y.toFixed(1))+'L'+b.toFixed(1)+','+y.toFixed(1);
+   if(day(w[4]))pS+=g;else pD+=g;py=y;prev=w[3];
+   hits+='<rect class="hit" x="'+a.toFixed(1)+'" y="'+(y-7).toFixed(1)+'" width="'+Math.max(4,b-a).toFixed(1)+'" height="14" fill="transparent"'+
+    stip(sml(m)+' · Battle.net\n'+T('Od','From')+'\t'+sdm(w[2])+'\n'+T('Do','To')+'\t'+sdm(w[3])+'\n'+T('Czas','Duration')+'\t'+snf(w[4],1)+' '+T('godz.','h')+'\n'+
+     T('Gracze','Players')+'\t'+snf(w[5])+'\n'+(at?T('Aktywne drużyny','Active teams')+'\t'+snf(w[7]):T('Wpisy bez BattleTaga','Entries without a BattleTag')+'\t'+snf(w[6]))+
+     (day(w[4])?'':'\n'+T('okno inne niż doba - gracze z całego okna','window other than a day - players of the whole window')))+'/>'});
+  if(pS)lines+='<path d="'+pS+'" fill="none" stroke="'+c+'" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>';
+  if(pD)lines+='<path d="'+pD+'" fill="none" stroke="'+c+'" stroke-width="2.6" stroke-dasharray="1 6" stroke-linecap="round"/>'});
+ if(st.pp.all&&A.length){var p='',pf=null;A.forEach(function(a,i){var x=X(a[4]),y=Y(a[1]),full=a[2]>=S.modes.length;
+   if(full){p+=(pf?'L':'M')+x.toFixed(1)+','+y.toFixed(1);pf=1}else pf=null;     // the line joins only days with every mode
+   dots+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="4.5" fill="'+(full?SMC.all:'#14110d')+'" stroke="'+SMC.all+'" stroke-width="2"/>';
+   hits+='<circle class="hit" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="11" fill="transparent"'+stip(T('Wszystkie tryby','All modes')+' · '+sdayl(a[0])+'\n'+
+    T('Unikalni gracze','Unique players')+'\t'+snf(a[1])+'\n'+T('Suma trybów','Sum of modes')+'\t'+snf(a[3])+'\n'+T('Tryby tego dnia','Modes that day')+'\t'+a[2]+' / '+S.modes.length)+'/>'});
+  if(p)lines+='<path d="'+p+'" fill="none" stroke="'+SMC.all+'" stroke-width="2.4" opacity=".9"/>'}
+ el.innerHTML='<svg class="ch" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="'+esc(T('Gracze dziennie','Players per day'))+'">'+F.svg+
+  saxes(W,H,M,T('Data','Date'),T('Gracze','Players'))+lines+dots+hits+'</svg>'}
+function upSec(S){                                   // Saul 04.11: different players on the Battle.net ladders (every BattleTag once) - Player Database v_unique_players
+ var U=S.up||{},runs=Object.keys(U).sort(),full=runs.filter(function(r){return S.modes.every(function(m){return U[r][m]})&&U[r].all}),r=full[full.length-1];
+ if(!r)return '';
+ var a=U[r].all,o='<h2>'+T('Różni gracze w rankingu','Different players on the ladder')+'</h2>'+
+  '<div class="cards act"><div class="card"><b>'+snf(a[0])+'</b><span>'+T('różnych BattleTagów we wszystkich ','different BattleTags on all ')+S.modes.length+T(' drabinkach - każdy gracz raz',' ladders - every player once')+'</span></div>'+
+  '<div class="card"><b>'+T('ok. ','about ')+snf(a[3])+'</b><span>'+T('szacunek z wpisami bez odczytanego BattleTaga','estimate incl. entries without a read BattleTag')+'</span></div>'+
+  '<div class="card"><b>'+esc(sdd(r))+'</b><span>'+T('bieg, w którym zeskanowano wszystkie tryby','the run in which every mode was scanned')+'</span></div></div>'+
+  '<div class="tw"><table><tr><th>'+T('Tryb','Mode')+'</th><th class="n">'+T('Różne BattleTagi','Different BattleTags')+'</th><th class="n">'+T('Wpisy z BattleTagiem','Entries with a BattleTag')+'</th><th class="n">'+
+  T('Wpisy bez BattleTaga','Entries without a BattleTag')+'</th><th class="n">'+T('Szacunek graczy','Players estimate')+'</th></tr>';
+ S.modes.concat(['all']).forEach(function(m){var x=U[r][m];if(!x)return;var al=m=='all';
+  o+='<tr'+(al?' class="key"':'')+'><td>'+(al?'<b>'+T('Wszystkie tryby','All modes')+'</b>':esc(sml(m)))+'</td><td class="n">'+(al?'<b>':'')+snf(x[0])+(al?'</b>':'')+'</td><td class="n">'+snf(x[1])+'</td><td class="n">'+snf(x[2])+'</td><td class="n">'+snf(x[3])+'</td></tr>'});
+ return o+'</table></div><p class="dim small">'+T('Liczby z widoku Player Database. Gracz z kilkoma rasami albo w kilku trybach liczy się raz; w AT liczą się odczytani członkowie drużyn. Wpisy z BattleTagiem w sumie trybów są większe niż różne BattleTagi, bo ten sam gracz występuje wiele razy. Szacunek doliczy wpisy bez BattleTaga w tej samej proporcji.',
+  'Numbers from the Player Database view. A player with several races or in several modes counts once; in AT the read team members count. Entries with a BattleTag add up to more than the different BattleTags because one player appears many times. The estimate adds the entries without a BattleTag in the same proportion.')+'</p>'}
+function statsDraw(S,st){gpdDraw(S,st);ppdDraw(S,st);poolDraw(S,st);distDraw(S,st)}
 function statsPage(){
  var S=D.stats,root=document.getElementById('app');if(!S){root.innerHTML='';return}
  var st=window._st=window._st||{gm:{},norm:false,w3c:true,pm:'1v1',pv:'delta',pc:'time',all:false,dm:'1v1',dv:'now',my:''},K=strack(S,Math.floor(((root.clientWidth||900)-150)/48));
  S.modes.forEach(function(m){if(!(m in st.gm))st.gm[m]=true});if(!('all' in st.gm))st.gm.all=true;
+ if(!st.pp){st.pp={all:true};S.modes.forEach(function(m){st.pp[m]=true})}
  if(!(S.pool[st.pm]||[]).length)st.pm=S.modes.filter(function(m){return (S.pool[m]||[]).length})[0]||'1v1';
  if(!(S.hist||{})[st.dm])st.dm=S.modes.filter(function(m){return (S.hist||{})[m]})[0]||'1v1';
  var o=statsCards(S,K)+statsGrid(S,K)+(K.runs?'':'<p class="dim small">'+T('Od ','Since ')+esc(sdayl(S.since))+T(' żaden nowy skan nie jest jeszcze na stronie.',' no new scan is on the site yet.')+'</p>');
@@ -681,11 +730,15 @@ function statsPage(){
   T('Linia ciągła: gry w rankingu Battle.net między dwoma kolejnymi skanami trybu, podzielone przez czas między skanami (liczone z graczy obecnych w obu skanach). Linia przerywana: gry dziennie na W3Champions (dni UTC). Znormalizowane, jak na W3Champions: gry 2v2 i FFA liczone podwójnie, 3v3 potrójnie, 4v4 poczwórnie (AT tak samo), żeby porównać popularność trybów.',
    'Solid line: Battle.net ladder games between two consecutive scans of a mode, divided by the time between the scans (counted from players present in both scans). Dashed line: games per day on W3Champions (UTC days). Normalized, as on W3Champions: 2v2 and FFA games count twice, 3v3 three times, 4v4 four times (AT the same), to compare how popular the modes are.')+'</p>'+
   '<p class="dim small">'+T('Wszystkie (niebieska): suma 8 trybów Battle.net, każda gra liczona raz - tryby to osobne kolejki (gry AT nie wchodzą do rankingu RT). Część kropkowana: któryś tryb nie miał w tym czasie okna między skanami, więc wzięte jest jego najbliższe zmierzone tempo. W3Champions (złota, przerywana): jego tryby melee razem (1v1, 2v2, 4v4, FFA), bez normalizacji i bez gier na mapach własnych. W3Champions nie ma trybów AT, a w 2v2 i FFA gra się tam bardzo rzadko.','All (blue): the 8 Battle.net modes summed, every game counted once - the modes are separate queues (AT games do not count on the RT ladder). Dotted part: some mode had no window between scans at that time, so its nearest measured rate is used. W3Champions (gold, dashed): its melee modes together (1v1, 2v2, 4v4, FFA), without normalization and without custom-map games. W3Champions has no AT modes, and 2v2 and FFA are rarely played there.')+'</p>';
+ if(Object.keys(S.ppd||{}).length)o+='<h2>'+T('Gracze dziennie','Players per day')+'</h2>'+ppdCtl(S,st)+'<div class="chart" id="ppd"></div><p class="dim small">'+
+  T('Gracze = unikalne BattleTagi, które rozegrały co najmniej jedną grę między dwoma skanami trybu (w AT: odczytani członkowie drużyn, które grały). Wszystkie (niebieska, punkty = dni skanów): każdy gracz liczony raz, nawet gdy grał w kilku trybach; pełny punkt = tego dnia zeskanowano wszystkie tryby. Wpisy bez odczytanego BattleTaga nie są liczone (są w dymku). Linia kropkowana: okno krótsze niż 18 h albo dłuższe niż 30 h - liczy graczy z całego okna, nie z jednej doby.','Players = unique BattleTags that played at least one game between two consecutive scans of a mode (AT: the read members of the teams that played). All (blue, points = scan days): every player counted once, even when they played several modes; a filled point = every mode was scanned that day. Entries without a read BattleTag are not counted (they are in the tooltip). Dotted line: a window shorter than 18 h or longer than 30 h - it counts the players of the whole window, not of one day.')+'</p>';     // Saul 04.11
+ o+=upSec(S);
  o+='<h2>'+T('Rozkład MMR','MMR distribution')+'</h2>'+distCtl(S,st)+'<div class="chart" id="dist"></div>';     // Saul 03.11: under Games per day
  o+='<h2>'+T('MMR całej puli graczy','MMR of the whole player pool')+'</h2>'+poolCtl(S,st)+'<div id="poolc"></div><div class="chart" id="pool"></div><div id="poolt"></div>';
  o+=scanTable(S,st,K);
  root.innerHTML=o;
  statsDraw(S,st);
+ root.querySelectorAll('[data-pp]').forEach(function(b){b.onclick=function(){var m=b.dataset.pp;st.pp[m]=!st.pp[m];b.classList.toggle('off',!st.pp[m]);ppdDraw(S,st)}});
  root.querySelectorAll('[data-gm]').forEach(function(b){b.onclick=function(){var m=b.dataset.gm;st.gm[m]=!st.gm[m];b.classList.toggle('off',!st.gm[m]);gpdDraw(S,st)}});
  root.querySelectorAll('[data-sw]').forEach(function(b){b.onclick=function(){var k=b.dataset.sw;st[k]=!st[k];b.classList.toggle('on',st[k]);b.setAttribute('aria-pressed',st[k]?'true':'false');gpdDraw(S,st)}});
  root.querySelectorAll('[data-pm]').forEach(function(b){b.onclick=function(){st.pm=b.dataset.pm;root.querySelectorAll('[data-pm]').forEach(function(x){x.classList.toggle('on',x.dataset.pm==st.pm)});poolDraw(S,st)}});
