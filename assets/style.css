@@ -177,7 +177,8 @@ h2.hl{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px}
 .hc.sum{font:700 11px/22px ui-monospace,Consolas,monospace;text-align:center;color:var(--dim)}
 .hc.sum.full{background:#7cc47f;color:#1a1409}.hc.sum.part{background:#f0a477;color:#1a1409}.hc.sum.now{color:var(--gold)}
 .hc[data-tip]{cursor:pointer}.hc:focus{outline:2px solid var(--ink);outline-offset:1px}
-.sg .hc{width:44px;font:700 10px/22px ui-monospace,"Cascadia Code",Consolas,monospace;text-align:center}.sg .hc:not(.sum){color:#1a1409}   /* time on the site in the cell */
+.sg .hc{width:44px;font:700 10px/22px ui-monospace,"Cascadia Code",Consolas,monospace;text-align:center}.sg .hc:not(.sum){color:#1a1409}
+.sg .hc.no:not(.sum){color:#e5603a;font-size:13px}.hleg i.hc.no{font:700 9px/12px ui-monospace,Consolas,monospace;font-style:normal;text-align:center;color:#e5603a}   /* time on the site in the cell */
 .chart{background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:8px 6px 6px;margin:8px 0}
 svg.ch{display:block;max-width:100%}svg.ch text{fill:var(--dim);font:11px ui-monospace,Consolas,monospace}
 svg.ch text.al{fill:var(--ink);font:600 12px "Segoe UI",system-ui,sans-serif}

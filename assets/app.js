@@ -499,7 +499,7 @@ function statsGrid(S,K){
   o+='<span class="sgd'+(d==t?' now':'')+'"><i>'+(mo?esc(mo):'&nbsp;')+'</i>'+x.getDate()+'</span>'});
  S.modes.forEach(function(m){o+='<span class="sgm">'+esc(sml(m))+'</span>';
   days.forEach(function(d){var rs=Object.keys(K.P[m]||{}).filter(function(x){return x.slice(0,10)==d}).sort(),cls=rs.length>1?'c2':rs.length?'c1':d>t?'fut':d==t?'now':'no';
-   var at=rs.length?Math.min.apply(null,rs.map(function(r){return K.P[m][r]})):0,hh=at?(function(x){return sp2(x.getHours())+':'+sp2(x.getMinutes())})(new Date(at*1000)):'';
+   var at=rs.length?Math.min.apply(null,rs.map(function(r){return K.P[m][r]})):0,hh=at?(function(x){return sp2(x.getHours())+':'+sp2(x.getMinutes())})(new Date(at*1000)):cls=='no'?'✕':'';   // Saul 05.11: a missed day = X
    o+='<span class="hc '+cls+'"'+stip(sml(m)+' · '+sdayl(d)+'\n'+(rs.length?rs.map(function(r){return sRunTip(S,m,r,K.P[m][r])}).join('\n—\n'):
     d>t?T('jeszcze przed nami','still ahead'):d==t?T('dziś jeszcze nic nowego na stronie','nothing new on the site yet today'):T('brak nowego pełnego skanu na stronie','no new complete scan on the site')))+'>'+hh+'</span>'})});
  o+='<span class="sgm sgt">'+T('Wszystkie tryby','All modes')+'</span>';
@@ -508,7 +508,7 @@ function statsGrid(S,K){
   o+='<span class="hc sum '+cls+'"'+stip(sdayl(d)+'\n'+(d>t?T('jeszcze przed nami','still ahead'):T('Na stronie','On the site')+'\t'+(on.length?on.map(sml).join(', '):'–')+' ('+k+'/'+n+')'+
     (off.length?'\n'+T('Brak','Missing')+'\t'+off.map(sml).join(', '):'')))+'>'+(d>t?'':k)+'</span>'});
  return '<h2 class="hl">'+T('Skany na stronie','Scans on the site')+'<span class="hleg"><span><i class="hc c1"></i>'+T('nowy pełny skan','new complete scan')+'</span><span><i class="hc c2"></i>'+
-  T('2 skany jednego dnia','2 scans in one day')+'</span><span><i class="hc no"></i>'+T('brak','none')+'</span><span><i class="hc fut"></i>'+T('przed nami','ahead')+'</span></span></h2>'+o+'</div></div><p class="dim small">'+T('Godziny w Twojej strefie czasowej: ','Times in your time zone: ')+esc(tzName()||'UTC')+'</p>'}
+  T('2 skany jednego dnia','2 scans in one day')+'</span><span><i class="hc no">✕</i>'+T('brak skanu','no scan')+'</span><span><i class="hc fut"></i>'+T('przed nami','ahead')+'</span></span></h2>'+o+'</div></div><p class="dim small">'+T('Godziny w Twojej strefie czasowej: ','Times in your time zone: ')+esc(tzName()||'UTC')+'</p>'}
 function saxes(W,H,M,xl,yl){return '<text class="al" x="'+((M.l+W-M.r)/2).toFixed(1)+'" y="'+(H-5)+'" text-anchor="middle">'+esc(xl)+'</text>'+
  '<text class="al" transform="translate(14,'+((M.t+H-M.b)/2).toFixed(1)+') rotate(-90)" text-anchor="middle">'+esc(yl)+'</text>'}
 function snice(a,b,n){if(!(b>a))b=a+1;var r=(b-a)/(n||5),p=Math.pow(10,Math.floor(Math.log(r)/Math.LN10)),f=r/p,s=(f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p,lo=Math.floor(a/s)*s,hi=Math.ceil(b/s)*s,t=[];
