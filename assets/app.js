@@ -494,8 +494,11 @@ function statsCards(S,K){                          // Saul 03.11: latest new sca
   '<div class="sk g"><span>'+T('Dni ze wszystkimi trybami','Days with every mode')+'</span><b>'+(K.el?K.full+' / '+K.el:'–')+'</b></div></div>'}
 function sRunTip(S,m,r,at){var s=S.scans.filter(function(x){return x[0]==m&&x[1]==r})[0],tm=function(ts){return sshift(ts,r.slice(0,10))?sdm(ts):shm(ts)};
  return '§'+T('Skan ','Scan ')+sdd(r)+(s&&s[6]&&s[7]?'\n'+T('Skanowanie','Scanning')+'\t'+tm(s[6])+' – '+tm(s[7])+' ('+sdur(s[7]-s[6])+')':'')+
-  '\n'+T('Na stronie od','On the site since')+'\t'+sdm(at)+(s?'\n'+T('Wiersze','Rows')+'\t'+snf(s[3])+'\n'+T('Strony','Pages')+'\t'+snf(s[2])+(s[5]!=null?'\n'+T('BattleTagi','BattleTags')+'\t'+s[5]+'%':''):'')}
+  '\n'+T('Na stronie od','On the site since')+'\t'+sdm(at)+(s?'\n'+T('Wiersze','Rows')+'\t'+snf(s[3])+'\n'+T('Strony','Pages')+'\t'+snf(s[2])+stag(m,s):'')}
 function sEnd(S,m,r){var s=S.scans.filter(function(x){return x[0]==m&&x[1]==r})[0];return s&&s[7]?s[7]:0}   // end of the scan (Unix s), 0 = unknown
+function stag(m,s){var at=/arranged/.test(m);                 // Saul 06.11: AT in SLOTS (known slots / teams x size) + full line-ups, never 'a team with one known member'
+ return (s[5]!=null?'\n'+T('BattleTagi','BattleTags')+'\t'+snf(s[5],1)+'%'+(at?' '+T('slotów','of the slots'):''):at?'\n'+T('BattleTagi','BattleTags')+'\t–':'')+
+  (at?'\n'+T('Pełne składy','Full line-ups')+'\t'+(s[8]!=null?snf(s[8],1)+'%':'–'):'')}
 function statsGrid(S,K){
  var n=S.modes.length,t=K.today,days=K.days,shf=[0,0],o='<div class="sgw"><div class="sg" style="grid-template-columns:auto repeat('+days.length+',44px)"><span class="sgm"></span>';
  days.forEach(function(d,i){var x=sdate(d),mo=(i==0||x.getDate()==1)?x.toLocaleDateString(locFor(),{month:'short'}):'';
@@ -676,10 +679,11 @@ function scanTable(S,st,K){
  var L_=[];Object.keys(K.P).forEach(function(m){Object.keys(K.P[m]).forEach(function(r){L_.push([m,r,K.P[m][r],S.scans.filter(function(x){return x[0]==m&&x[1]==r})[0]||[]])})});
  if(!L_.length)return '';
  L_.sort(function(a,b){return b[2]-a[2]||S.modes.indexOf(a[0])-S.modes.indexOf(b[0])});
- var o='<h2>'+T('Lista skanów na stronie','List of scans on the site')+'</h2><div class="tw"><table><tr><th>'+T('Tryb','Mode')+'</th><th>'+T('Skan','Scan')+'</th><th>'+T('Na stronie od','On the site since')+'</th><th class="n">'+T('Czas skanu','Scan time')+'</th><th class="n">'+T('Strony','Pages')+'</th><th class="n">'+T('Wiersze','Rows')+'</th><th class="n">'+T('BattleTagi','BattleTags')+'</th></tr>';
- L_.slice(0,st.all?L_.length:12).forEach(function(x){var s=x[3];o+='<tr><td>'+esc(sml(x[0]))+'</td><td>'+esc(sdd(x[1]))+'</td><td>'+esc(sdm(x[2]))+'</td><td class="n">'+(s[6]&&s[7]?sdur(s[7]-s[6]):'–')+'</td><td class="n">'+snf(s[2])+'</td><td class="n">'+snf(s[3])+'</td><td class="n">'+(s[5]!=null?s[5]+'%':'–')+'</td></tr>'});
- if(L_.length>12)o+='<tr class="morerow"><td colspan="7"><a href="#" data-sall="1">'+(st.all?'▲ '+T('Zwiń','Collapse')+' ▲':'▼ '+T('Pokaż wszystkie','Show all')+' ('+L_.length+') ▼')+'</a></td></tr>';
- return o+'</table></div>'}
+ var o='<h2>'+T('Lista skanów na stronie','List of scans on the site')+'</h2><div class="tw"><table><tr><th>'+T('Tryb','Mode')+'</th><th>'+T('Skan','Scan')+'</th><th>'+T('Na stronie od','On the site since')+'</th><th class="n">'+T('Czas skanu','Scan time')+'</th><th class="n">'+T('Strony','Pages')+'</th><th class="n">'+T('Wiersze','Rows')+'</th><th class="n">'+T('BattleTagi','BattleTags')+'</th><th class="n">'+T('Pełne składy','Full line-ups')+'</th></tr>';
+ L_.slice(0,st.all?L_.length:12).forEach(function(x){var s=x[3];o+='<tr><td>'+esc(sml(x[0]))+'</td><td>'+esc(sdd(x[1]))+'</td><td>'+esc(sdm(x[2]))+'</td><td class="n">'+(s[6]&&s[7]?sdur(s[7]-s[6]):'–')+'</td><td class="n">'+snf(s[2])+'</td><td class="n">'+snf(s[3])+'</td><td class="n">'+(s[5]!=null?snf(s[5],1)+'%':'–')+'</td><td class="n">'+(/arranged/.test(x[0])?(s[8]!=null?snf(s[8],1)+'%':'–'):'')+'</td></tr>'});
+if(L_.length>12)o+='<tr class="morerow"><td colspan="8"><a href="#" data-sall="1">'+(st.all?'▲ '+T('Zwiń','Collapse')+' ▲':'▼ '+T('Pokaż wszystkie','Show all')+' ('+L_.length+') ▼')+'</a></td></tr>';
+ return o+'</table></div><p class="dim small">'+T('W AT BattleTagi to odsetek znanych slotów (drużyny × rozmiar drużyny), a pełne składy to drużyny, w których znamy wszystkich graczy.',
+  'In AT, BattleTags = the share of known slots (teams × team size); full line-ups = teams with every player known.')+'</p>'}
 function ppdCtl(S,st){                               // Saul 04.11: unique Battle.net players per window / day
  return '<div class="chips"><button type="button" data-pp="all"'+(st.pp.all?'':' class="off"')+'><i style="background:'+SMC.all+'"></i>'+T('Wszystkie','All')+'</button>'+
   S.modes.filter(function(m){return ((S.ppd||{})[m]||[]).length}).map(function(m){return '<button type="button" data-pp="'+esc(m)+'"'+(st.pp[m]?'':' class="off"')+'><i style="background:'+SMC[m]+'"></i>'+esc(sml(m))+'</button>'}).join('')+'</div>'}
