@@ -421,7 +421,7 @@ function activityPage(){
    {k:'pd',h:T('Gier na dobę','Games per day'),n:1,v:function(o){return o.pd},td:function(o){return o.pd.toFixed(1)}}];
   o+=sTable('m',T('Najbardziej aktywni na Battle.net – wszystkie tryby','Most active on Battle.net – all modes'),'pd',
    MA.rows.map(function(r,i){return {rank:i+1,name:r[0],icon:r[1],lg:r[2],g:r[3],pd:r[4],br:r[5]}}),
-   T('Gry gracza (BattleTag) ze wszystkich trybów i ras razem, z najnowszego okna każdego trybu: ','A player’s (BattleTag) games of all modes and races together, from the latest window of every mode: ')+
+   T('Gry gracza (BattleTag) ze wszystkich trybów i ras razem, tylko z okien kończących się tego samego dnia (tryb, którego najnowsze okno kończy się wcześniej, czeka na swój skan z tego dnia): ','A player’s (BattleTag) games of all modes and races together, only from windows that end on the same day (a mode whose latest window ends earlier waits for its scan of that day): ')+
    MA.windows.map(function(w){return esc(w[0])+' '+dd(w[1])+' → '+dd(w[2])+(w[3]?' ('+Math.round(w[3])+' h)':'')}).join(', ')+'. '+
    T('Gier na dobę = suma po trybach (gry w trybie / długość okna trybu w dobach, liczona z godzin). Gry z bazy Player Database; ta tabela nie zależy od przełączników powyżej.','Games per day = sum over the modes (games in the mode / length of the mode’s window in days, from its hours). Games from the Player Database; this table does not follow the switches above.'),
    null,MCOLS,10);
