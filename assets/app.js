@@ -441,6 +441,7 @@ var SNORM={'1v1':1,'2v2':2,'3v3':3,'4v4':4,'FFA':2,'2v2-arranged':2,'3v3-arrange
 var SPM=[['p99',9,'#e5603a'],['p90',8,'#f0a477'],['mean',3,'#d9a521'],['p50',6,'#e8dcc2'],['p10',4,'#7fc4ff']];   // pool row: [run,t,n,mean,p10,p25,p50,p75,p90,p99,top100,sum]
 function sml(m){return String(m).replace('-arranged',' AT')}
 function sdd(x){return x?sdate(x).toLocaleDateString(locFor(),{day:'numeric',month:'short'})+(x.length>10?' #'+(x.charCodeAt(10)-96):''):''}
+function spct(v){return snf(v,v>=100?0:1)}                    // Boss 12.11: '100 %' without ',0' (only a full set is 100)
 function snf(v,d){return v==null||isNaN(v)?'–':Number(v).toLocaleString(locFor(),{minimumFractionDigits:d||0,maximumFractionDigits:d||0})}
 function ssg(v,d){if(v==null||isNaN(v))return '–';var k=Math.pow(10,d||0),r=Math.round(v*k)/k;return (r>0?'+':r<0?'−':'±')+snf(Math.abs(r),d)}
 function sp2(n){return (n<10?'0':'')+n}
@@ -497,8 +498,8 @@ function sRunTip(S,m,r,at){var s=S.scans.filter(function(x){return x[0]==m&&x[1]
   '\n'+T('Na stronie od','On the site since')+'\t'+sdm(at)+(s?'\n'+T('Wiersze','Rows')+'\t'+snf(s[3])+'\n'+T('Strony','Pages')+'\t'+snf(s[2])+stag(m,s):'')}
 function sEnd(S,m,r){var s=S.scans.filter(function(x){return x[0]==m&&x[1]==r})[0];return s&&s[7]?s[7]:0}   // end of the scan (Unix s), 0 = unknown
 function stag(m,s){var at=/arranged/.test(m);                 // Saul 06.11: AT in SLOTS (known slots / teams x size) + full line-ups, never 'a team with one known member'
- return (s[5]!=null?'\n'+T('BattleTagi','BattleTags')+'\t'+snf(s[5],1)+'%'+(at?' '+T('slotów','of the slots'):''):at?'\n'+T('BattleTagi','BattleTags')+'\t–':'')+
-  (at?'\n'+T('Pełne składy','Full line-ups')+'\t'+(s[8]!=null?snf(s[8],1)+'%':'–'):'')}
+ return (s[5]!=null?'\n'+T('BattleTagi','BattleTags')+'\t'+spct(s[5])+'%'+(at?' '+T('slotów','of the slots'):''):at?'\n'+T('BattleTagi','BattleTags')+'\t–':'')+
+  (at?'\n'+T('Pełne składy','Full line-ups')+'\t'+(s[8]!=null?spct(s[8])+'%':'–'):'')}
 function statsGrid(S,K){
  var n=S.modes.length,t=K.today,days=K.days,shf=[0,0],o='<div class="sgw"><div class="sg" style="grid-template-columns:auto repeat('+days.length+',44px)"><span class="sgm"></span>';
  days.forEach(function(d,i){var x=sdate(d),mo=(i==0||x.getDate()==1)?x.toLocaleDateString(locFor(),{month:'short'}):'';
@@ -680,7 +681,7 @@ function scanTable(S,st,K){
  if(!L_.length)return '';
  L_.sort(function(a,b){return b[2]-a[2]||S.modes.indexOf(a[0])-S.modes.indexOf(b[0])});
  var o='<h2>'+T('Lista skanów na stronie','List of scans on the site')+'</h2><div class="tw"><table><tr><th>'+T('Tryb','Mode')+'</th><th>'+T('Skan','Scan')+'</th><th>'+T('Na stronie od','On the site since')+'</th><th class="n">'+T('Czas skanu','Scan time')+'</th><th class="n">'+T('Strony','Pages')+'</th><th class="n">'+T('Wiersze','Rows')+'</th><th class="n">'+T('BattleTagi','BattleTags')+'</th><th class="n">'+T('Pełne składy','Full line-ups')+'</th></tr>';
- L_.slice(0,st.all?L_.length:12).forEach(function(x){var s=x[3];o+='<tr><td>'+esc(sml(x[0]))+'</td><td>'+esc(sdd(x[1]))+'</td><td>'+esc(sdm(x[2]))+'</td><td class="n">'+(s[6]&&s[7]?sdur(s[7]-s[6]):'–')+'</td><td class="n">'+snf(s[2])+'</td><td class="n">'+snf(s[3])+'</td><td class="n">'+(s[5]!=null?snf(s[5],1)+'%':'–')+'</td><td class="n">'+(/arranged/.test(x[0])?(s[8]!=null?snf(s[8],1)+'%':'–'):'')+'</td></tr>'});
+ L_.slice(0,st.all?L_.length:12).forEach(function(x){var s=x[3];o+='<tr><td>'+esc(sml(x[0]))+'</td><td>'+esc(sdd(x[1]))+'</td><td>'+esc(sdm(x[2]))+'</td><td class="n">'+(s[6]&&s[7]?sdur(s[7]-s[6]):'–')+'</td><td class="n">'+snf(s[2])+'</td><td class="n">'+snf(s[3])+'</td><td class="n">'+(s[5]!=null?spct(s[5])+'%':'–')+'</td><td class="n">'+(/arranged/.test(x[0])?(s[8]!=null?spct(s[8])+'%':'–'):'')+'</td></tr>'});
 if(L_.length>12)o+='<tr class="morerow"><td colspan="8"><a href="#" data-sall="1">'+(st.all?'▲ '+T('Zwiń','Collapse')+' ▲':'▼ '+T('Pokaż wszystkie','Show all')+' ('+L_.length+') ▼')+'</a></td></tr>';
  return o+'</table></div><p class="dim small">'+T('W AT BattleTagi to odsetek znanych slotów (członków drużyn), a pełne składy to drużyny, w których znamy wszystkich graczy.',
   'In AT, BattleTags = the share of known slots (team members); full line-ups = teams with every player known.')+' '+
