@@ -749,7 +749,7 @@ function statsPage(){
  o+=upSec(S);
  o+='<h2>'+T('Rozkład MMR','MMR distribution')+'</h2>'+distCtl(S,st)+'<div class="chart" id="dist"></div>';     // Saul 03.11: under Games per day
  o+='<h2>'+T('MMR całej puli graczy','MMR of the whole player pool')+'</h2>'+poolCtl(S,st)+'<div id="poolc"></div><div class="chart" id="pool"></div><div id="poolt"></div>';
- o+=scanTable(S,st,K);
+ // Saul 13.11: 'List of scans on the site' removed from the page - the 'Scans on the site' grid is enough (scanTable kept, not called)
  root.innerHTML=o;
  statsDraw(S,st);
  root.querySelectorAll('[data-pp]').forEach(function(b){b.onclick=function(){var m=b.dataset.pp;st.pp[m]=!st.pp[m];b.classList.toggle('off',!st.pp[m]);ppdDraw(S,st)}});
