@@ -167,7 +167,7 @@ h2.hl{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px}
 .hleg i.hc{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:6px}
 .sgw{overflow-x:auto;background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:10px 14px 12px}
 .sg{display:grid;gap:4px;width:max-content;grid-template-rows:30px;grid-auto-rows:22px;align-items:end}
-.sgm{font:600 12px/22px ui-monospace,Consolas,monospace;color:var(--dim);padding-right:10px;white-space:nowrap;position:sticky;left:0;background:var(--panel);z-index:1}
+.sgm{font:600 12px/22px ui-monospace,Consolas,monospace;color:var(--dim);padding-right:10px;white-space:nowrap;position:sticky;left:0;background:var(--panel);z-index:1;align-self:stretch;box-shadow:-14px 0 0 var(--panel),0 -4px 0 var(--panel),6px 0 6px -6px rgba(0,0,0,.7)}   /* Saul 13.11: the sticky mode bar also covers the frame's left padding, the row gaps and the empty corner - no cells peeking out on the phone */
 .sgm.sgt{color:var(--ink)}
 .sgd{display:flex;flex-direction:column;align-items:center;font:400 11px/14px ui-monospace,Consolas,monospace;color:var(--dim)}
 .sgd i{font-style:normal;color:var(--ink);white-space:nowrap}.sgd.now{color:var(--gold);font-weight:700}
