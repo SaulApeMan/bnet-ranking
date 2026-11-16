@@ -652,6 +652,11 @@ function distDraw(S,st){
  rs.forEach(function(r){for(var i=1;i<=nr;i++)if(st.dv=='all'||i==nr)ym=Math.max(ym,r[i])});
  var yt=snice(0,ym),X=function(v){return M.l+(v-lo)/(hi-lo)*(W-M.l-M.r)},Y=function(v){return M.t+(yt.hi-v)/(yt.hi-yt.lo)*(H-M.t-M.b)},
   Yp=function(v){return M.t+(100-v)/100*(H-M.t-M.b)},s='',hits='',bp=Math.max(1,X(lo+bw)-X(lo)-1);
+ // Saul 15.11 (phone): the Top % marker labels overlapped - each label takes the first row where it fits (no overlap), short '50%' labels on narrow charts, the chart top grows by the rows used
+ var pmn=(W-M.l-M.r)<420,pmL=[],pmE=[];
+ if(q.length)[[50,500],[25,750],[10,900],[5,950],[2,980],[1,990]].forEach(function(k){var x=X(q[k[1]]);if(x<M.l||x>W-M.r)return;
+  var t=(pmn?'':T('Top ','Top '))+k[0]+'%',w=t.length*6.2+6,r=0;while(pmE[r]!=null&&pmE[r]>x-w/2)r++;pmE[r]=x+w/2;pmL.push([x,t,r])});
+ if(pmL.length){var pmR=pmE.length+(pmn?1:0);M.t=14+12*pmR;H+=Math.max(0,M.t-36)}
  yt.t.forEach(function(v){var y=Y(v).toFixed(1);s+='<line class="gl'+(v==0?' z':'')+'" x1="'+M.l+'" x2="'+(W-M.r)+'" y1="'+y+'" y2="'+y+'"/><text x="'+(M.l-6)+'" y="'+(+y+4)+'" text-anchor="end">'+snf(v)+'</text>'});
  snice(lo,hi,Math.max(3,Math.floor((W-M.l-M.r)/70))).t.forEach(function(v){if(v>=lo&&v<=hi)s+='<text x="'+X(v).toFixed(1)+'" y="'+(H-M.b+16)+'" text-anchor="middle">'+v+'</text>'});
  rs.forEach(function(r){var x=X(r[0]);s+='<rect x="'+x.toFixed(1)+'" y="'+Y(r[nr]).toFixed(1)+'" width="'+bp.toFixed(1)+'" height="'+Math.max(0,Y(0)-Y(r[nr])).toFixed(1)+'" fill="#d9a521" fill-opacity=".8"/>';
@@ -663,8 +668,9 @@ function distDraw(S,st){
  if(q.length){var p='';for(var k=0;k<=160;k++){var x=lo+(hi-lo)*k/160;p+=(k?'L':'M')+X(x).toFixed(1)+','+Yp(stop(q,x)).toFixed(1)}
   s+='<path d="'+p+'" fill="none" stroke="#6fd16f" stroke-width="1.5" opacity=".7"/>';
   [0,25,50,75,100].forEach(function(v){s+='<text x="'+(W-M.r+6)+'" y="'+(Yp(v)+4).toFixed(1)+'">'+v+'%</text>'});
-  [[50,500],[25,750],[10,900],[5,950],[2,980],[1,990]].forEach(function(k,i){var x=X(q[k[1]]);if(x<M.l||x>W-M.r)return;
-   s+='<line class="pm" x1="'+x.toFixed(1)+'" x2="'+x.toFixed(1)+'" y1="'+(M.t-(i%2?16:4))+'" y2="'+(H-M.b)+'"/><text class="pml" x="'+x.toFixed(1)+'" y="'+(M.t-(i%2?20:8))+'" text-anchor="middle">'+esc(T('Top ','Top ')+k[0]+'%')+'</text>'})}
+  if(pmn&&pmL.length)s+='<text class="pml" x="'+M.l+'" y="'+(M.t-8-12*(pmR-1))+'" text-anchor="start">'+esc(T('Top ','Top ')+'%')+'</text>';
+  pmL.forEach(function(k){var x=k[0].toFixed(1);
+   s+='<line class="pm" x1="'+x+'" x2="'+x+'" y1="'+(M.t-4-12*k[2])+'" y2="'+(H-M.b)+'"/><text class="pml" x="'+x+'" y="'+(M.t-8-12*k[2])+'" text-anchor="middle">'+esc(k[1])+'</text>'})}
  var my=parseInt(st.my,10),msg=T('Wpisz MMR, a pokażę Twoje miejsce.','Type an MMR to see your place.');
  if(my>0&&q.length){var tp=stop(q,my),x=X(Math.max(lo,Math.min(hi,my))),ab=N!=null?Math.round(N*tp/100):null,rt=x>W-M.r-130;
   s+='<line x1="'+x.toFixed(1)+'" x2="'+x.toFixed(1)+'" y1="'+M.t+'" y2="'+(H-M.b)+'" stroke="#2f9bff" stroke-width="2.4"/>'+
