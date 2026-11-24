@@ -25,7 +25,7 @@ function hist(el,m,race){
  h.forEach(function(r){mx=Math.max(mx,r[idx])});
  var w=Math.max(h.length*22+50,320),H=200,s='<svg viewBox="0 0 '+w+' '+(H+30)+'" width="100%" role="img">';
  h.forEach(function(r,i){var bh=mx?Math.round(r[idx]/mx*(H-10)):0,x=40+i*22;
-  s+='<rect x="'+x+'" y="'+(H-bh)+'" width="19" height="'+bh+'" fill="'+(race?'var(--'+RC[race]+')':'var(--gold)')+'"><title>'+r[0]+'-'+(r[0]+D.bin-1)+': '+r[idx]+'</title></rect>';
+  s+='<rect x="'+x+'" y="'+(H-bh)+'" width="19" height="'+bh+'" fill="'+(race?'var(--'+RC[race]+')':'var(--gold)')+'"><title>'+r[0]+(r[0]<0?' – ':'-')+(r[0]+D.bin-1)+': '+r[idx]+'</title></rect>';
   if(i%3==0)s+='<text x="'+(x+9)+'" y="'+(H+14)+'" text-anchor="middle">'+r[0]+'</text>'});
  s+='<text x="2" y="12">'+mx+'</text><text x="2" y="'+H+'">0</text></svg>';el.innerHTML=s}
 function games(r){return r[4]==null||r[5]==null?null:r[4]+r[5]}
